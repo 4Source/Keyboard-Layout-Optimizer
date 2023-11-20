@@ -288,7 +288,7 @@
     "scancode": [41, 1]
   },
   {
-    "keycode": "\\",
+    "keycode": "b/",
     "scancode": [45, 0]
   },
   {
@@ -369,10 +369,10 @@
   },
   {
     "keycode": "/",
-    "scancode": [46, 0]
+    "scancode": [55, 0]
   },
   {
     "keycode": "?",
-    "scancode": [46, 1]
+    "scancode": [55, 1]
   }
 ]
