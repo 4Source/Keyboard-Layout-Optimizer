@@ -158,7 +158,7 @@ function createGenome()
     return myGenome
 end
 
-function drawKeyboard(myGenome, id)
+function drawKeyboard(myGenome, path, id)
     plot()
     namedColours = ["yellow", "green", "blue", "red", "purple", "blue", "green", "yellow", "orange"]
     keyOffset = 0
@@ -184,7 +184,12 @@ function drawKeyboard(myGenome, id)
     end
     
     plot!(aspect_ratio = 1, legend = false)
-    savefig("image/$(id).png")
+    
+    # Check path exist or create it
+    if !ispath("image/$path")
+        mkdir("image/$path")
+    end
+    savefig("image/$path/$id.png")
 
 end
 
@@ -441,7 +446,7 @@ function runSA()
     coolingRate = 0.99
     num_iterations = 25000
 
-    drawKeyboard(bestGenome, "iteration/0")
+    drawKeyboard(bestGenome, "iteration", 0)
 
     # run SA
     staticCount = 0.0
@@ -474,7 +479,7 @@ function runSA()
                 println("(new best, png being saved)")
                 
 
-                drawKeyboard(bestGenome, "iteration/$(iteration)")
+                drawKeyboard(bestGenome, "iteration", iteration)
             end
         elseif exp(-delta/temperature) > rand()
             #print(" *")
@@ -499,7 +504,7 @@ function runSA()
     end
 
     # save
-    drawKeyboard(bestGenome, "final")
+    drawKeyboard(bestGenome, "", "final")
 
     # return
     return bestGenome
