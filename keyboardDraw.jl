@@ -95,6 +95,8 @@ function drawKeyboard(path, id)
                 keycode = ""
                 scancode = [0,0]
             end
+
+            ""
             
             if scancode != [0,0] && keycode != ""
                 # print(" keycode ")
