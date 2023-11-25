@@ -12,7 +12,8 @@ OPTIONS_CONFIG = {
     "auto-start": [False, True],
     "mode": ["local", "debug"],
     "hide": [False, True],
-    "exclude-typos": [True, False]
+    "exclude-typos": [True, False],
+    "page-prefix": [""]
 }
 
 config = {}
@@ -25,9 +26,14 @@ def is_valid_config(fix):
             if fix: config[k] = v[0]
             else: valid = False
         else:
-            if not config[k] in v:
-                if fix: config[k] = v[0]
-                else: valid = False
+            if len(v) > 1:
+                if not config[k] in v:
+                    if fix: config[k] = v[0]
+                    else: valid = False
+            else:
+                if not type(config[k]) == type(v[0]):
+                    if fix: config[k] = v[0]
+                    else: valid = False
 
     invalid = []  
     for k, v in config.items():

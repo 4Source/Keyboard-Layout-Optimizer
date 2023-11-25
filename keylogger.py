@@ -91,9 +91,9 @@ def log_debug():
 
 # Append file with pressed keys
 def log_local():
-    global line_buffer
+    global line_buffer, config
     path = join(dir_path, book_path)
-    file = join(path, "page_" + (date.today() - timedelta(days=1)).strftime('%Y-%m-%d') + ".txt")
+    file = join(path, ("" if config["page-prefix"] == "" else config["page-prefix"] + "_")  + "page_" + (date.today() - timedelta(days=1)).strftime('%Y-%m-%d') + ".txt")
     if not exists(path):
         os.makedirs(path)    
     f = open(file, "a", encoding='utf8')
