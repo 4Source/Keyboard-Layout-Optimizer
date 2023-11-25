@@ -13,7 +13,8 @@ OPTIONS_CONFIG = {
     "mode": ["local", "debug"],
     "hide": [False, True],
     "exclude-typos": [True, False],
-    "page-prefix": [""]
+    "page-prefix": [""],
+    "buffer-size": [20]
 }
 
 config = {}
