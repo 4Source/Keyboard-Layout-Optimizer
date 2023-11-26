@@ -86,9 +86,8 @@ def write_config():
         json.dump(config, write_file, indent=4)
 
 def create_default_config():
-    global config
-    for k, v in OPTIONS_CONFIG.items():
-        config[k] = v[0]
+    is_valid_config(True)
+    
 
 # Menu for Configuration
 def display_menu(title, menu):
