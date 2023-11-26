@@ -20,7 +20,7 @@ You feelt like the standard keyboard layout isn't a charm? Or just wanna try Ano
             - ```pip install ...``` see [requirements](https://github.com/4Source/Keyboard-Layout-Optimizer/blob/0559009ecdf047fd0d607f1708d0e4a9043dff64/python%20requirements.txt)
         3. Setup Keylogger
             - ```python SetupKeylogger.py```
-            - Need to run once to create the config file. You can just run it and than exit or change config [[Show options]()] if you like.
+            - Need to run once to create the config file. You can just run it and than exit or change config [[Show options](https://github.com/4Source/Keyboard-Layout-Optimizer/tree/master#configs)] if you like.
         4. Start Keylogger
             - ```python keylogger.py```
             - Let it run as long as you like. Recommendet to collect data for coulple of weeks.
