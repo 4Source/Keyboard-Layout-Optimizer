@@ -1,9 +1,7 @@
 import os
 from os import system
 from os.path import exists
-import sys
 import json
-from winreg import SetValueEx, OpenKey, HKEY_CURRENT_USER, KEY_ALL_ACCESS, REG_SZ, DeleteValue
 
 # CONSTANTS
 CONFIG_FILE = 'keylogger-config.json'
@@ -16,7 +14,7 @@ OPTIONS_CONFIG = {
     "page-prefix": [""],
     "buffer-size": [20],
     "hotkeys": {
-        "exit-hotkey": ["ctrl+alt+e"],
+        "exit-hotkey": ["ctrl+alt+x"],
         "pause-hotkey": ["ctrl+alt+p"]
     }
 }
