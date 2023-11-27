@@ -15,7 +15,8 @@ OPTIONS_CONFIG = {
     "buffer-size": [20],
     "hotkeys": {
         "exit-hotkey": ["ctrl+alt+x"],
-        "pause-hotkey": ["ctrl+alt+p"]
+        "pause-hotkey": ["ctrl+alt+p"],
+        "save-hotkey": ["ctrl+alt+s"]
     }
 }
 

