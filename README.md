@@ -43,7 +43,8 @@ Your pressed Keys **only** get saved on your local computer. You can find them i
     - **True** - The Keylogger will auto start at startup. 
 - _mode_
     - **local** (Default) - Key presses get logged localy on your computer.
-    - **debug** - Key presses only get printed to the console. Requiers _hide_ = False
+    - **console** - Key names get printed to console. Requiers _hide_ = False.
+    - **debug** - Key presses get printed to the console. Ignores _hide_ config.
 - _hide_
   - **False** (Default) - Console stays visible after starting the Keylogger.
   - **True** - Console will be invisible also with _auto-start_ = True.
@@ -59,7 +60,7 @@ Your pressed Keys **only** get saved on your local computer. You can find them i
 - _hotkeys_
   - _exit-hotkey_
     - **ctrl+alt+x** (Default) - To stop the Keylogger completly also in hidden mode.
-    - **YOUR-HOTKEY** - **Only** use correct hotkeys. If you unsure how the keys are named you could use _mode_ = debug to see the namings. Invalid hotkeys may crash the keylogger.
+    - **YOUR-HOTKEY** - **Only** use correct hotkeys. If you unsure how the keys are named you could use _mode_ = console to see the namings. Invalid hotkeys may crash the keylogger.
   - _pause-hotkey_
     - **ctrl+alt+p** (Default) - To Pause/Continue the Keylogger. Usefull is you don't want your passwords in the 'page' files appier in clear text.
-    - **YOUR-HOTKEY** - **Only** use correct hotkeys. If you unsure how the keys are named you could use _mode_ = debug to see the namings. Invalid hotkeys may crash the keylogger
+    - **YOUR-HOTKEY** - **Only** use correct hotkeys. If you unsure how the keys are named you could use _mode_ = console to see the namings. Invalid hotkeys may crash the keylogger

