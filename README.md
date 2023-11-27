@@ -63,4 +63,7 @@ Your pressed Keys **only** get saved on your local computer. You can find them i
     - **YOUR-HOTKEY** - **Only** use correct hotkeys. If you unsure how the keys are named you could use _mode_ = console to see the namings. Invalid hotkeys may crash the keylogger.
   - _pause-hotkey_
     - **ctrl+alt+p** (Default) - To Pause/Continue the Keylogger. Usefull is you don't want your passwords in the 'page' files appier in clear text.
-    - **YOUR-HOTKEY** - **Only** use correct hotkeys. If you unsure how the keys are named you could use _mode_ = console to see the namings. Invalid hotkeys may crash the keylogger
+    - **YOUR-HOTKEY** - **Only** use correct hotkeys. If you unsure how the keys are named you could use _mode_ = console to see the namings. Invalid hotkeys may crash the keylogger.
+  - _save-hotkey_
+    - **ctrl+alt+s** (Default) - To save the buffer. Usefull is if you wanna save the buffer manually.
+    - **YOUR-HOTKEY** - **Only** use correct hotkeys. If you unsure how the keys are named you could use _mode_ = console to see the namings. Invalid hotkeys may crash the keylogger.
