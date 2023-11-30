@@ -41,7 +41,10 @@ Your pressed Keys **only** get saved on your local computer. You can find them i
 - _auto-start_
     - **False** (Default) - The Keylogger needs to be started manually.
     - **True** - The Keylogger will auto start at startup. 
-- _mode_
+- _mode_ 
+    - **heatmap** (Default) - Values for a Heatmap get saved to a file.
+    - **text** - The clear text get written to the _pages_.
+- _output_
     - **local** (Default) - Key presses get logged localy on your computer.
     - **console** - Key names get printed to console. Requiers _hide_ = False.
     - **debug** - Key presses get printed to the console. Ignores _hide_ config.

