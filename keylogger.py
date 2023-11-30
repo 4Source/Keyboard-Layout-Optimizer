@@ -1,5 +1,4 @@
 import keyboard
-from keyboard import is_pressed
 import win32api
 import win32event
 import win32console
@@ -9,7 +8,6 @@ import json
 import os
 from os.path import exists, join
 import sys
-from datetime import timedelta, date
 from winreg import SetValueEx, OpenKey, HKEY_CURRENT_USER, KEY_ALL_ACCESS, REG_SZ, DeleteValue
 
 # Folder where the pages of your book get logged
@@ -25,8 +23,6 @@ DIR_PATH = os.path.dirname(os.path.realpath(sys.argv[0]))
 
 # Config Dict
 config = {}
-# Buffer for text
-line_buffer = ''
 # Buffer for Heatmap
 heatmap_buffer = {}
 heatmap_order = []
@@ -87,44 +83,27 @@ def remove_from_startup():
 
 # Debug logger
 def log_debug():
-    global config, line_buffer, heatmap_buffer
-    if config["mode"] == "heatmap":
-        for k, v in heatmap_buffer.items():
-            print(v)
-        return True
-    elif config["mode"] == "text":
-        line_buffer = line_buffer.encode()
-        print(line_buffer)
-        line_buffer = ''
-        return True
-    return False
+    global config, heatmap_buffer
+    if len(heatmap_order) > 0:
+            print(heatmap_buffer[heatmap_order[-1]])
+    return True
 
 # Append file with pressed keys
 def log_local():
-    global config, line_buffer, heatmap_buffer
+    global config, heatmap_buffer
     path = join(DIR_PATH, BOOK_PATH)
     if not exists(path):
-            os.makedirs(path)  
-    if config["mode"] == "heatmap":        
-        unused = []
-        for k,v in heatmap_buffer.items():
-            if v["mentions"] == 0:
-                unused.append(k)
-        for k in unused:
-            del heatmap_buffer[k]
-        file = join(path, "heatmap.json")
-        with open(file, "w") as write_file:
-            json.dump(heatmap_buffer, write_file, indent=4)
-        return True
-    elif config["mode"] == "text":
-        if len(line_buffer) >= config["buffer-size"]:
-            file = join(path, ("" if config["page-prefix"] == "" else config["page-prefix"] + "_")  + "page_" + (date.today() - timedelta(days=1)).strftime('%Y-%m-%d') + ".txt")
-            f = open(file, "a", encoding='utf8')
-            f.write(line_buffer)
-            f.close
-            line_buffer = ''
-            return True
-    return False
+            os.makedirs(path)       
+    unused = []
+    for k,v in heatmap_buffer.items():
+        if v["mentions"] == 0:
+            unused.append(k)
+    for k in unused:
+        del heatmap_buffer[k]
+    file = join(path, (("" if config["file-prefix"] == "" else config["file-prefix"] + "_") + "heatmap.json"))
+    with open(file, "w") as write_file:
+        json.dump(heatmap_buffer, write_file, indent=4)
+    return True
 
 # Log with configured output
 def log_it():
@@ -134,34 +113,23 @@ def log_it():
     elif config["output"] == "debug":
         log_debug()
     return True
-
-def page_mode(event):
-    global line_buffer
-    is_pressed_ctrl = is_pressed('ctrl') or is_pressed('right ctrl')
-    is_pressed_alt = is_pressed('alt') or is_pressed('alt gr')
-
-    key_pressed = ''
-    # Key Represention
-    if event.name == 'space':
-        key_pressed = ' '
-    elif event.name == 'enter':
-        key_pressed = '\n'
-    elif event.name == 'backspace':
-        if config["exclude-typos"]:
-            line_buffer = line_buffer[:-1]
-    elif not (is_pressed_ctrl | is_pressed_alt):
-        if len(event.name) == 1:
-            key_pressed = event.name
-    else:
-        return False
-
-    line_buffer += key_pressed
     
-    return log_it()
+def key_callback(event):
+    global heatmap_buffer, heatmap_order, paused
 
-def heatmap_mode(event):
-    global heatmap_buffer, heatmap_order
-
+    # while paused no logging
+    if paused:
+        return False
+    
+    # event key up 
+    if event.event_type == 'up':
+        return False
+    
+    # Console output
+    if config["output"] == 'console':
+        print(event.name, event.scan_code)
+        return True
+    
     key_pressed = {}
     # Key Represention
     if event.name == 'space':
@@ -197,45 +165,21 @@ def heatmap_mode(event):
             heatmap_buffer[index] = key_pressed
         heatmap_order.append(index)
             
-    
     return log_it()
-    
-def key_callback(event):
-    global line_buffer, paused
-
-    # while paused no logging
-    if paused:
-        return False
-    
-    # event key up 
-    if event.event_type == 'up':
-        return False
-    
-    # Console output
-    if config["output"] == 'console':
-        line_buffer += event.name + " " + str(event.scan_code)
-        return log_debug()
-    
-    if config["mode"] == "heatmap":
-         return heatmap_mode(event)
-    elif config["mode"] == "text":
-        return page_mode(event)
-    return False
 
 def pause_logging():
-    global paused, line_buffer
+    global paused
     if not config["hide"] or (config["output"] == 'debug'):
         print(LOGGER_NAME + (" paused" if not paused else " continue"))
     paused = not paused
 
 def read_heatmap():
-    if config["mode"] == "heatmap":
-        path = join(DIR_PATH, BOOK_PATH)
-        file = join(path, "heatmap.json")
-        if exists(file) and not os.stat(file).st_size == 0:
-            with open(file, "r") as read_file:
-                global heatmap_buffer
-                heatmap_buffer = json.load(read_file)
+    path = join(DIR_PATH, BOOK_PATH)
+    file = join(path, (("" if config["file-prefix"] == "" else config["file-prefix"] + "_") + "heatmap.json"))
+    if exists(file) and not os.stat(file).st_size == 0:
+        with open(file, "r") as read_file:
+            global heatmap_buffer
+            heatmap_buffer = json.load(read_file)
 
 def hide():
     if not config["output"] == 'debug':
@@ -256,7 +200,6 @@ def main():
     keyboard.add_hotkey(config["hotkeys"]["save-hotkey"], log_local)
     # To Exit the Keylogger with safing the buffer (ctrl + alt + e)
     keyboard.wait(config["hotkeys"]["exit-hotkey"]) 
-    global line_buffer
     log_local()
     if not config["hide"] or (config["output"] == 'debug'):
         print(LOGGER_NAME + " stopped.")

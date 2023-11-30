@@ -8,12 +8,10 @@ CONFIG_FILE = 'keylogger-config.json'
 PYTHON_EXEC_PATH = 'python'  # used only when executable=False.
 OPTIONS_CONFIG = {
     "auto-start": [False, True],
-    "mode": ["heatmap", "text"],
     "output": ["local", "console", "debug"],
     "hide": [False, True],
     "exclude-typos": [True, False],
-    "page-prefix": [""],
-    "buffer-size": [20],
+    "file-prefix": [""],
     "hotkeys": {
         "exit-hotkey": ["ctrl+alt+x"],
         "pause-hotkey": ["ctrl+alt+p"],

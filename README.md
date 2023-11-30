@@ -2,7 +2,7 @@
 
 This Project is based on the [AtomicFrontierCode/keyboards](https://github.com/AtomicFrontierCode/keyboards) Repository.
 
-You feelt like the standard keyboard layout isn't a charm? Or just wanna try Another Keyboard Layout? This Project could help you find **your** better keyboard layout. The change won't be easy, so you should think carefully about whether you want to do it. It is also important that _myBook_ contains _pages_ that are suitable for you. _myBook_? _pages_? What does that mean? _myBook_ is the name of the folder where the pages are in. The _pages_ are in best case Text you wrote or just text in the languges you use. These text will be used to measure the usability of the keyboard layout. 
+You feelt like the standard keyboard layout isn't a charm? Or just wanna try Another Keyboard Layout? This Project could help you find **your** better keyboard layout. The change won't be easy, so you should think carefully about whether you want to do it. It is also important that _myBook_ contains _pages_ that are suitable for you. _myBook_? _pages_? What does that mean? _myBook_ is the name of the folder where the pages are in. The _pages_ are Text you wrote or just text in the languges you use. These text will be used to create a heatmap, this will measure the usability of the keyboard layout. 
 
 > [!WARNING]
 > This Project is still under development.
@@ -32,18 +32,15 @@ You feelt like the standard keyboard layout isn't a charm? Or just wanna try Ano
 
 # Keylogger
 ## Why Keylogger?
-This isn't a must, but if you leave it running for a few weeks while you type on your computer, you'll get a personalized keyboard layout based on your most frequently used keys. This keylogger cannot send your files to other locations, but it is **strongly recommended** to pause the keylogger using the _pause-hotkey_ while typing passwords. Then your passwords will not be stored in plain text on your _pages_.
+This isn't a must, but if you leave it running for a few weeks while you type on your computer, you'll get a personalized keyboard layout based on your most frequently used keys. This keylogger cannot send your files to other locations, but it is **strongly recommended** to pause the keylogger using the _pause-hotkey_ while typing passwords. Your passwords wont be saved in plane text but will stay in keylogger till stopped the keylogger.
 > [!Note]
 > It is **strongly recommended** to pause the keylogger using the _pause-hotkey_ while typing passwords.
 ## Where get it saved?
-Your pressed Keys **only** get saved on your local computer. You can find them in _myBook_ which get created if your first keys get logged. Inside you will find _pages_ for each day. 
+Your pressed Keys **only** get saved on your local computer. You can find them in _myBook_ which get created if your first keys get logged. Inside you will find _heatmap_ with the count of pressed keys. 
 ## Configs
 - _auto-start_
     - **False** (Default) - The Keylogger needs to be started manually.
     - **True** - The Keylogger will auto start at startup. 
-- _mode_ 
-    - **heatmap** (Default) - Values for a Heatmap get saved to a file.
-    - **text** - The clear text get written to the _pages_.
 - _output_
     - **local** (Default) - Key presses get logged localy on your computer.
     - **console** - Key names get printed to console. Requiers _hide_ = False.
@@ -54,12 +51,9 @@ Your pressed Keys **only** get saved on your local computer. You can find them i
 - _exclude-typos_
   - **True** (Default) - If you use BACKSPACE the last keys get removed from buffer.
   - **False** - Keep all keys you typed.
-- _page-prefix_
-  - **""** (Default) - Your 'page' files have no prefix.
-  - **"YOUR-PREFIX"** - It is posible to prefix your 'page' files with a custom prefix. Usefull if you use on mulible computers and will combine all your pages in one folder so you get not file name conflicts.
-- _buffer-size_
-  - **20** (Default) - How many keys you can press befor the buffer get saved in a file.
-  - **YOUR-BUFFER-SIZE** - You can change this to nearly any number, but to small and many file writes will may block the keylogger and to big can also block the keylogger when saving.
+- _file-prefix_
+  - **""** (Default) - Your files have no prefix.
+  - **"YOUR-PREFIX"** - It is posible to prefix your files with a custom prefix. Usefull if you use on mulible computers and will combine all your files in one folder so you get not file name conflicts.
 - _hotkeys_
   - _exit-hotkey_
     - **ctrl+alt+x** (Default) - To stop the Keylogger completly also in hidden mode.
