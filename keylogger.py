@@ -151,10 +151,11 @@ def key_callback(event):
         }
     # Backspace
     elif event.name == 'backspace':
-        if len(heatmap_order) > 0:
-            if not heatmap_buffer[heatmap_order[-1]]["value"] == "hotkey":
-                heatmap_buffer[heatmap_order[-1]]["mentions"] = heatmap_buffer[heatmap_order[-1]]["mentions"] - 1
-            heatmap_order.pop()
+        if config["exclude-typos"]:
+            if len(heatmap_order) > 0:
+                if not heatmap_buffer[heatmap_order[-1]]["value"] == "hotkey":
+                    heatmap_buffer[heatmap_order[-1]]["mentions"] = heatmap_buffer[heatmap_order[-1]]["mentions"] - 1
+                heatmap_order.pop()
     # Letters
     elif len(event.name) == 1:
         key_pressed = {
