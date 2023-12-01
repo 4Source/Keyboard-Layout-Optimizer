@@ -132,30 +132,42 @@ def key_callback(event):
     
     key_pressed = {}
     # Key Represention
-    if event.name == 'space':
+    # Shift
+    if event.scan_code == 42 or event.scan_code == 54:
+        return False
+    # Space
+    elif event.name == 'space':
         key_pressed = {
             "name": event.name,
             "scancode": event.scan_code,
             "value": " "
         }
+    # Enter
     elif event.name == 'enter':
         key_pressed = {
             "name": event.name,
             "scancode": event.scan_code,
             "value": "\n"
         }
+    # Backspace
     elif event.name == 'backspace':
         if len(heatmap_order) > 0:
-            heatmap_buffer[heatmap_order[-1]]["mentions"] = heatmap_buffer[heatmap_order[-1]]["mentions"] - 1
+            if not heatmap_buffer[heatmap_order[-1]]["value"] == "hotkey":
+                heatmap_buffer[heatmap_order[-1]]["mentions"] = heatmap_buffer[heatmap_order[-1]]["mentions"] - 1
             heatmap_order.pop()
-    else:
-        if len(event.name) == 1:
-            key_pressed = {
-            "name": event.name,
-            "scancode": event.scan_code,
-            "value": event.name
+    # Letters
+    elif len(event.name) == 1:
+        key_pressed = {
+        "name": event.name,
+        "scancode": event.scan_code,
+        "value": event.name
         }
+    # Other
+    else:
+        print("Not saved key: ")
+        print(event.name, event.scan_code)
     
+    # Add to heatmap
     if not key_pressed == {}:
         index = key_pressed["name"]
         if index in heatmap_buffer and "mentions" in heatmap_buffer[index]:
@@ -164,7 +176,7 @@ def key_callback(event):
             key_pressed["mentions"] = 1
             heatmap_buffer[index] = key_pressed
         heatmap_order.append(index)
-            
+    
     return log_it()
 
 def pause_logging():
