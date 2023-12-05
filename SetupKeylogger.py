@@ -12,6 +12,7 @@ OPTIONS_CONFIG = {
     "hide": [False, True],
     "exclude-typos": [True, False],
     "file-prefix": [""],
+    "combination-time": [800],
     "hotkeys": {
         "exit-hotkey": ["ctrl+alt+x"],
         "pause-hotkey": ["ctrl+alt+p"],

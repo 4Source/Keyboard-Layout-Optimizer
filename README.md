@@ -54,6 +54,9 @@ Your pressed Keys **only** get saved on your local computer. You can find them i
 - _file-prefix_
   - **""** (Default) - Your files have no prefix.
   - **"YOUR-PREFIX"** - It is posible to prefix your files with a custom prefix. Usefull if you use on mulible computers and will combine all your files in one folder so you get not file name conflicts.
+- _combination-time_
+  - **800** (Default) - Maximum time in ms between keypresses wich counts as combination.
+  - **YOUR-TIME** - Increase time if your typing is slower. 
 - _hotkeys_
   - _exit-hotkey_
     - **ctrl+alt+x** (Default) - To stop the Keylogger completly also in hidden mode.

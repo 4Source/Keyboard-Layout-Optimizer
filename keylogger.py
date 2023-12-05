@@ -8,6 +8,7 @@ import json
 import os
 from os.path import exists, join
 import sys
+import time
 from winreg import SetValueEx, OpenKey, HKEY_CURRENT_USER, KEY_ALL_ACCESS, REG_SZ, DeleteValue
 
 # Folder where the pages of your book get logged
@@ -85,7 +86,10 @@ def remove_from_startup():
 def log_debug():
     global config, heatmap_buffer
     if len(heatmap_order) > 0:
-            print(heatmap_buffer[heatmap_order[-1]])
+            if len(heatmap_order[-1]["key"]) == 1:
+                print(heatmap_buffer[heatmap_order[-1]["key"][0]])
+            if len(heatmap_order[-1]["key"]) == 2:
+                print(heatmap_buffer[heatmap_order[-1]["key"][0] + heatmap_order[-1]["key"][1]])
     return True
 
 # Append file with pressed keys
@@ -117,6 +121,8 @@ def log_it():
 def key_callback(event):
     global heatmap_buffer, heatmap_order, paused
 
+    now_ms = round(time.time_ns() / 1000000)
+
     # while paused no logging
     if paused:
         return False
@@ -140,43 +146,77 @@ def key_callback(event):
         key_pressed = {
             "name": event.name,
             "scancode": event.scan_code,
-            "value": " "
+            "value": " ",
+            "length": 1
         }
     # Enter
     elif event.name == 'enter':
         key_pressed = {
             "name": event.name,
             "scancode": event.scan_code,
-            "value": "\n"
+            "value": "\n",
+            "length": 1
         }
     # Backspace
     elif event.name == 'backspace':
         if config["exclude-typos"]:
             if len(heatmap_order) > 0:
-                if not heatmap_buffer[heatmap_order[-1]]["value"] == "hotkey":
-                    heatmap_buffer[heatmap_order[-1]]["mentions"] = heatmap_buffer[heatmap_order[-1]]["mentions"] - 1
+                if len(heatmap_order[-1]["key"]) == 1:
+                    heatmap_buffer[heatmap_order[-1]["key"][0]]["mentions"] = heatmap_buffer[heatmap_order[-1]["key"][0]]["mentions"] - 1
+                    # heatmap_order.pop()
+                elif len(heatmap_order[-1]["key"]) == 2:
+                    heatmap_buffer[heatmap_order[-1]["key"][-1]]["mentions"] = heatmap_buffer[heatmap_order[-1]["key"][-1]]["mentions"] - 1
+                    heatmap_buffer[(heatmap_order[-1]["key"][0] + heatmap_order[-1]["key"][1])]["mentions"] = heatmap_buffer[(heatmap_order[-1]["key"][0] + heatmap_order[-1]["key"][1])]["mentions"] - 1
+                    # heatmap_order[-1]["key"] = [heatmap_order[-1]["key"][0]]
                 heatmap_order.pop()
+                
     # Letters
     elif len(event.name) == 1:
         key_pressed = {
         "name": event.name,
         "scancode": event.scan_code,
-        "value": event.name
+        "value": event.name,
+        "length": 1
         }
     # Other
     else:
         print("Not saved key: ")
         print(event.name, event.scan_code)
     
-    # Add to heatmap
     if not key_pressed == {}:
-        index = key_pressed["name"]
-        if index in heatmap_buffer and "mentions" in heatmap_buffer[index]:
-            heatmap_buffer[index]["mentions"] = heatmap_buffer[index]["mentions"] + 1
+        index = [key_pressed["name"]]
+        # Add combination key to heatmap
+        if len(heatmap_order) > 0 and now_ms - heatmap_order[-1]["time"] < config["combination-time"]:
+            if len(heatmap_order[-1]["key"]) == 1:
+                temp = {}
+                temp["name"] = [heatmap_buffer[heatmap_order[-1]["key"][0]]["name"], key_pressed["name"]]
+                temp["scancode"] = [heatmap_buffer[heatmap_order[-1]["key"][0]]["scancode"], key_pressed["scancode"]]
+                temp["value"] = [heatmap_buffer[heatmap_order[-1]["key"][0]]["value"], key_pressed["value"]]
+                temp["length"] = 2
+                index = [temp["name"][0], temp["name"][1]]
+            elif len(heatmap_order[-1]["key"]) == 2:
+                temp = {}
+                temp["name"] = [heatmap_buffer[heatmap_order[-1]["key"][-1]]["name"], key_pressed["name"]]
+                temp["scancode"] = [heatmap_buffer[heatmap_order[-1]["key"][-1]]["scancode"], key_pressed["scancode"]]
+                temp["value"] = [heatmap_buffer[heatmap_order[-1]["key"][-1]]["value"], key_pressed["value"]]
+                temp["length"] = 2
+                index = [temp["name"][0], temp["name"][1]]
+            if (temp["name"][0] + temp["name"][1]) in heatmap_buffer and "mentions" in heatmap_buffer[(temp["name"][0] + temp["name"][1])]:
+                heatmap_buffer[(temp["name"][0] + temp["name"][1])]["mentions"] = heatmap_buffer[(temp["name"][0] + temp["name"][1])]["mentions"] + 1
+            else:
+                temp["mentions"] = 1
+                heatmap_buffer[(temp["name"][0] + temp["name"][1])] = temp
+        # Add single key to heatmap
+        if key_pressed["name"] in heatmap_buffer and "mentions" in heatmap_buffer[key_pressed["name"]]:
+            heatmap_buffer[key_pressed["name"]]["mentions"] = heatmap_buffer[key_pressed["name"]]["mentions"] + 1
         else:
             key_pressed["mentions"] = 1
-            heatmap_buffer[index] = key_pressed
-        heatmap_order.append(index)
+            heatmap_buffer[key_pressed["name"]] = key_pressed
+
+        heatmap_order.append({
+            "key": index,
+            "time": now_ms
+        })
     
     return log_it()
 
@@ -213,7 +253,7 @@ def main():
     keyboard.add_hotkey(config["hotkeys"]["save-hotkey"], log_local)
     # To Exit the Keylogger with safing the buffer (ctrl + alt + e)
     keyboard.wait(config["hotkeys"]["exit-hotkey"]) 
-    log_local()
+    log_it()
     if not config["hide"] or (config["output"] == 'debug'):
         print(LOGGER_NAME + " stopped.")
     exit()
