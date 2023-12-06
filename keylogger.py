@@ -9,6 +9,7 @@ import json
 import os
 from os.path import exists, join
 import sys
+from datetime import date, timedelta
 from winreg import SetValueEx, OpenKey, HKEY_CURRENT_USER, KEY_ALL_ACCESS, REG_SZ, DeleteValue
 
 # Folder where the pages of your book get logged
@@ -109,7 +110,7 @@ def log_local():
     path = join(DIR_PATH, BOOK_PATH)
     if not exists(path):
         os.makedirs(path) 
-    file = join(path, (("" if config["file-prefix"] == "" else config["file-prefix"] + "_") + "heatmap.json"))
+    file = join(path, (("" if config["file-prefix"] == "" else config["file-prefix"] + "_") + "heatmap_" + (date.today() - timedelta(days=1)).strftime('%Y-%m-%d') + ".json"))
     with open(file, "w") as write_file:
         json.dump(heatmap_buffer, write_file, indent=4)
     return True
