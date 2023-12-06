@@ -45,7 +45,7 @@ def read_config():
 read_config()
 
 # Disallowing multiple instances
-mutex = win32event.CreateMutex(None, 1, 'mutex_var_Start' + ('' if not config["output"] == 'debug' else '_debug'))
+mutex = win32event.CreateMutex(None, 1, 'mutex_var_Start' + config["file-prefix"])
 if win32api.GetLastError() == winerror.ERROR_ALREADY_EXISTS:
     mutex = None
     if not config["hide"] or (config["output"] == 'debug'):
