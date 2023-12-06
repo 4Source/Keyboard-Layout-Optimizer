@@ -94,16 +94,21 @@ def log_debug():
 
 # Append file with pressed keys
 def log_local():
-    global config, heatmap_buffer
-    path = join(DIR_PATH, BOOK_PATH)
-    if not exists(path):
-            os.makedirs(path)       
+    global config, heatmap_buffer 
+    # Remove elements with mentions = 0     
     unused = []
     for k,v in heatmap_buffer.items():
         if v["mentions"] == 0:
             unused.append(k)
     for k in unused:
         del heatmap_buffer[k]
+    # Sort elements by mentions
+    sorted_buffer = sorted(heatmap_buffer.items(), key=lambda x:x[1]["mentions"], reverse=True)
+    heatmap_buffer = dict(sorted_buffer)
+    # Save in file
+    path = join(DIR_PATH, BOOK_PATH)
+    if not exists(path):
+            os.makedirs(path) 
     file = join(path, (("" if config["file-prefix"] == "" else config["file-prefix"] + "_") + "heatmap.json"))
     with open(file, "w") as write_file:
         json.dump(heatmap_buffer, write_file, indent=4)
