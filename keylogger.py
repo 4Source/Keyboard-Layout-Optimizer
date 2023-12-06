@@ -89,7 +89,7 @@ def log_debug():
             # Print the last pressed keycombinaiton to console
             elif len(heatmap_order[-1]["key"]) == 2:
                 print(heatmap_buffer[heatmap_order[-1]["key"][0] + heatmap_order[-1]["key"][1]])
-    return True
+                return True
     return False
 
 # Append file with pressed keys
@@ -108,7 +108,7 @@ def log_local():
     # Save in file
     path = join(DIR_PATH, BOOK_PATH)
     if not exists(path):
-            os.makedirs(path) 
+        os.makedirs(path) 
     file = join(path, (("" if config["file-prefix"] == "" else config["file-prefix"] + "_") + "heatmap.json"))
     with open(file, "w") as write_file:
         json.dump(heatmap_buffer, write_file, indent=4)
@@ -139,7 +139,15 @@ def key_callback(event: KeyboardEvent):
     
     # Console output
     if config["output"] == 'console':
-        print(event.name, event.scan_code)
+        print("event:",{
+            "name": event.name,
+            "event_type": event.event_type,
+            "scan_code": event.scan_code,
+            "time": event.time,
+            "device": event.device,
+            "is_keypad": event.is_keypad,
+            "modifiers": event.modifiers
+        })
         return True
     
     key_pressed = {}
