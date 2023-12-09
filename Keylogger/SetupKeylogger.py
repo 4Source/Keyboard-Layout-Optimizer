@@ -16,6 +16,7 @@ OPTIONS_CONFIG = {
     "exclude-typos": [True, False],
     "file-prefix": [""],
     "combination-time": [800],
+    "save-intervall": [5000],
     "hotkeys": {
         "exit-hotkey": ["ctrl+alt+x"],
         "pause-hotkey": ["ctrl+alt+p"],

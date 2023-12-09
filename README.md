@@ -11,7 +11,7 @@ You feelt like the standard keyboard layout isn't a charm? Or just wanna try Ano
 1. Get the Files
     - ```cd YOUR-FOLDER```
     - ```git clone https://github.com/4Source/Keyboard-Layout-Optimizer.git```
-    - ```cd Keyboard-Layout-Optimizer```
+    - ```cd .\Keyboard-Layout-Optimizer\Keylogger\```
 2. Create _myBook_
     - Option 1 **(Recommendet)**
         1. Install Python
@@ -26,7 +26,7 @@ You feelt like the standard keyboard layout isn't a charm? Or just wanna try Ano
             - Let it run as long as you like. Recommendet to collect data for coulple of weeks.
             - You can also add _pages_.txt that you would like to be taken into account. If you add large files or files with just word list this can distort the result. **Solution:** Don't add them or let the keylogger collect more data.
     - Option 2
-        1. Create _myBook_ folder in this folder.
+        1. Create _myBook_ folder in ```Keyboard-Layout-Optimizer``` folder.
         2. Add _pages_.txt manualy. Don't use only word list this can result in unusable keyboard layout. **Good options are:** Text/Code you wrote or Text/Code from Books or other sources
 3. To be continued...
 
@@ -57,6 +57,10 @@ Your pressed Keys **only** get saved on your local computer. You can find them i
 - _combination-time_
   - **800** (Default) - Maximum time in ms between keypresses wich counts as combination.
   - **YOUR-TIME** - Increase time if your typing is slower. 
+- _save-intervall_
+  - **5000** (Default) - Minimum time in ms between saves.
+  - **0** - Saves immediately after pressing a key.
+  - **YOUR-TIME** - Increase time if you want to save less often.
 - _hotkeys_
   - _exit-hotkey_
     - **ctrl+alt+x** (Default) - To stop the Keylogger completly also in hidden mode.

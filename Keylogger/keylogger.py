@@ -9,7 +9,8 @@ import json
 import os
 from os.path import exists, join
 import sys
-from datetime import date, timedelta
+from datetime import date
+import time
 from winreg import SetValueEx, OpenKey, HKEY_CURRENT_USER, KEY_ALL_ACCESS, REG_SZ, DeleteValue
 
 # Folder where the pages of your book get logged
@@ -30,6 +31,8 @@ heatmap_buffer = {}
 heatmap_order = []
 # Paused logging
 paused = False
+# Time when the last save of the heatmap was
+last_save = 0
 
 # Read config from json file
 def read_config():
@@ -127,9 +130,11 @@ def log_local():
 
 # Log with configured output
 def log_it():
-    global config
-    if config["output"] == "local":        
-        return log_local()
+    global config, last_save
+    if config["output"] == "local":   
+        if round(time.time_ns() / 1000000) - last_save > config["save-intervall"]:
+            last_save = round(time.time_ns() / 1000000)
+            return log_local()
     elif config["output"] == "debug":
         return log_debug()
     return False
@@ -277,8 +282,9 @@ def main():
     keyboard.add_hotkey(config["hotkeys"]["save-hotkey"], log_local)
     # To Exit the Keylogger with safing the buffer (ctrl + alt + e)
     keyboard.wait(config["hotkeys"]["exit-hotkey"]) 
-    if not log_it() and not config["hide"]:
-        print("Something went wrong while saving!")
+    if config["output"] == "local":
+        if not log_local() and not config["hide"]:
+            print("Something went wrong while saving!")
     if not config["hide"]:
         print(LOGGER_NAME + " stopped.")
     exit()
@@ -299,5 +305,8 @@ if __name__ == '__main__':
         print("Loaded existing heatmap.")
     else:
         print("No Heatmap for today exist. Will be created.")
+
+    # Setup save time
+    last_save = round(time.time_ns() / 1000000)
 
     main()
