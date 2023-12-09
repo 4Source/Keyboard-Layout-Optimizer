@@ -110,7 +110,7 @@ def log_local():
     path = join(DIR_PATH, BOOK_PATH)
     if not exists(path):
         os.makedirs(path) 
-    file = join(path, (("" if config["file-prefix"] == "" else config["file-prefix"] + "_") + "heatmap_" + (date.today() - timedelta(days=1)).strftime('%Y-%m-%d') + ".json"))
+    file = join(path, (("" if config["file-prefix"] == "" else config["file-prefix"] + "_") + "heatmap_" + date.today().strftime('%Y-%m-%d') + ".json"))
     with open(file, "w") as write_file:
         json.dump(heatmap_buffer, write_file, indent=4)
     return True
