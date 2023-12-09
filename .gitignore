@@ -3,3 +3,5 @@ iterationScores.txt
 /image/final.png
 keylogger-config.json
 /myBook
+/.vscode
+*.exe
