@@ -1,11 +1,14 @@
 import os
 from os import system
-from os.path import exists
+from os.path import exists, join
 import json
+import sys
 
 # CONSTANTS
 CONFIG_FILE = 'keylogger-config.json'
-PYTHON_EXEC_PATH = 'python'  # used only when executable=False.
+# Directory path
+DIR_PATH = os.path.dirname(os.path.realpath(sys.argv[0]))
+# Config options
 OPTIONS_CONFIG = {
     "auto-start": [False, True],
     "output": ["local", "console", "debug"],
@@ -67,19 +70,23 @@ def is_valid_config(fix):
     
     return valid
 
+# Read config from json file
 def read_config():
-    if exists(CONFIG_FILE) and not os.stat(CONFIG_FILE).st_size == 0:
-        with open(CONFIG_FILE, "r") as read_file:
+    config_path = join(DIR_PATH, CONFIG_FILE)
+    # Check file exist and is not empty
+    if exists(config_path) and not os.stat(config_path).st_size == 0:
+        # Open file and read config 
+        with open(config_path, "r") as read_file:
             global config
             config = json.load(read_file)
-            if not is_valid_config(True): 
-                write_config()
             return True
     else:
         return False
 
+# Write config to json file
 def write_config():
-    with open(CONFIG_FILE, "w") as write_file:
+    config_path = join(DIR_PATH, CONFIG_FILE)
+    with open(config_path, "w") as write_file:
         global config
         is_valid_config(True)
         json.dump(config, write_file, indent=4)

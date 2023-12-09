@@ -20,7 +20,7 @@ def combine(buffer):
             heatmap_buffer[k] = buffer[k]
 
 def combine_json():
-    path = join(DIR_PATH, BOOK_PATH)
+    path = join(DIR_PATH, os.pardir, BOOK_PATH)
     for file in os.listdir(path):
         if file == "heatmap.final.json":
             continue
@@ -30,7 +30,7 @@ def combine_json():
                 combine(temp_buffer)
 
 def combine_page():
-    path = join(DIR_PATH, BOOK_PATH)
+    path = join(DIR_PATH, os.pardir, BOOK_PATH)
     for file in os.listdir(path):
         if file.endswith("txt"):
             with open(join(path, file), "r") as read_file:
@@ -55,13 +55,18 @@ def combine_page():
 
 def save_heatmap():
     global heatmap_buffer
-    path = join(DIR_PATH, BOOK_PATH)     
+    # Remove elements with mentions = 0     
     unused = []
     for k,v in heatmap_buffer.items():
         if v["mentions"] == 0:
             unused.append(k)
     for k in unused:
-        del heatmap_buffer[k]    
+        del heatmap_buffer[k]
+    # Sort elements by mentions
+    sorted_buffer = sorted(heatmap_buffer.items(), key=lambda x:x[1]["mentions"], reverse=True)
+    heatmap_buffer = dict(sorted_buffer)
+    # Save in file
+    path = join(DIR_PATH, os.pardir, BOOK_PATH)      
     file = join(path,  "heatmap.final.json")
     with open(file, "w") as write_file:
         json.dump(heatmap_buffer, write_file, indent=4)

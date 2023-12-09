@@ -107,7 +107,7 @@ def log_local():
     sorted_buffer = sorted(heatmap_buffer.items(), key=lambda x:x[1]["mentions"], reverse=True)
     heatmap_buffer = dict(sorted_buffer)
     # Save in file
-    path = join(DIR_PATH, BOOK_PATH)
+    path = join(DIR_PATH, os.pardir, BOOK_PATH)
     if not exists(path):
         os.makedirs(path) 
     file = join(path, (("" if config["file-prefix"] == "" else config["file-prefix"] + "_") + "heatmap_" + date.today().strftime('%Y-%m-%d') + ".json"))
