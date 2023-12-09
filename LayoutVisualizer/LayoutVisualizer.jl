@@ -9,7 +9,7 @@ using JSON
 
 
 # ~~~ data ~~~
-layoutPath = "layout/scancode.layout.json"
+layoutPath = "layout/qwertz.layout.json"
 mapPath = "map/scancode.map.json"
 
 # ~~~ keyboard ~~~
@@ -82,27 +82,27 @@ function drawKeyboard(path, id)
 
             j = 1
             keycode = get(currentKeyMap[j], "keycode", "")
-            scancode = get(currentKeyMap[j], "scancode", [0,0])
+            location = get(currentKeyMap[j], "location", [0,0])
 
-            while j <= length(currentKeyMap) && scancode[1] != keyIndex
+            while j <= length(currentKeyMap) && location[1] != keyIndex
                 # print(keycode)
                 # print(" ")
                 keycode = get(currentKeyMap[j], "keycode", "")
-                scancode = get(currentKeyMap[j], "scancode", [0,0])
+                location = get(currentKeyMap[j], "location", [0,0])
                 j = j + 1
             end
-            if scancode[1] != keyIndex
+            if location[1] != keyIndex
                 keycode = ""
-                scancode = [0,0]
+                location = [0,0]
             end
 
             ""
             
-            if scancode != [0,0] && keycode != ""
+            if location != [0,0] && keycode != ""
                 # print(" keycode ")
                 # print(keycode)
-                # print(" scancode ")
-                # print(scancode)
+                # print(" location ")
+                # print(location)
                 annotate!(x, y, text(keycode, :black, :center, 10))
             end
         end

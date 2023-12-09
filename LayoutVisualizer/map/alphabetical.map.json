@@ -1,186 +1,186 @@
 [
   {
     "keycode": "~",
-    "scancode": [1, 0]
+    "location": [1, 0]
   },
   {
     "keycode": "1",
-    "scancode": [2, 0]
+    "location": [2, 0]
   },
   {
     "keycode": "2",
-    "scancode": [3, 0]
+    "location": [3, 0]
   },
   {
     "keycode": "3",
-    "scancode": [4, 0]
+    "location": [4, 0]
   },
   {
     "keycode": "4",
-    "scancode": [5, 0]
+    "location": [5, 0]
   },
   {
     "keycode": "5",
-    "scancode": [6, 0]
+    "location": [6, 0]
   },
   {
     "keycode": "6",
-    "scancode": [7, 0]
+    "location": [7, 0]
   },
   {
     "keycode": "7",
-    "scancode": [8, 0]
+    "location": [8, 0]
   },
   {
     "keycode": "8",
-    "scancode": [9, 0]
+    "location": [9, 0]
   },
   {
     "keycode": "9",
-    "scancode": [10, 0]
+    "location": [10, 0]
   },
   {
     "keycode": "0",
-    "scancode": [11, 0]
+    "location": [11, 0]
   },
   {
     "keycode": "-",
-    "scancode": [12, 0]
+    "location": [12, 0]
   },
   {
     "keycode": "+",
-    "scancode": [13, 0]
+    "location": [13, 0]
   },
   {
     "keycode": "A",
-    "scancode": [14, 0]
+    "location": [14, 0]
   },
   {
     "keycode": "B",
-    "scancode": [15, 0]
+    "location": [15, 0]
   },
   {
     "keycode": "C",
-    "scancode": [16, 0]
+    "location": [16, 0]
   },
   {
     "keycode": "D",
-    "scancode": [17, 0]
+    "location": [17, 0]
   },
   {
     "keycode": "E",
-    "scancode": [18, 0]
+    "location": [18, 0]
   },
   {
     "keycode": "F",
-    "scancode": [19, 0]
+    "location": [19, 0]
   },
   {
     "keycode": "G",
-    "scancode": [20, 0]
+    "location": [20, 0]
   },
   {
     "keycode": "H",
-    "scancode": [21, 0]
+    "location": [21, 0]
   },
   {
     "keycode": "I",
-    "scancode": [22, 0]
+    "location": [22, 0]
   },
   {
     "keycode": "J",
-    "scancode": [23, 0]
+    "location": [23, 0]
   },
   {
     "keycode": "[",
-    "scancode": [24, 0]
+    "location": [24, 0]
   },
   {
     "keycode": "]",
-    "scancode": [25, 0]
+    "location": [25, 0]
   },
   {
     "keycode": "K",
-    "scancode": [26, 0]
+    "location": [26, 0]
   },
   {
     "keycode": "L",
-    "scancode": [27, 0]
+    "location": [27, 0]
   },
   {
     "keycode": "M",
-    "scancode": [28, 0]
+    "location": [28, 0]
   },
   {
     "keycode": "N",
-    "scancode": [29, 0]
+    "location": [29, 0]
   },
   {
     "keycode": "O",
-    "scancode": [30, 0]
+    "location": [30, 0]
   },
   {
     "keycode": "P",
-    "scancode": [31, 0]
+    "location": [31, 0]
   },
   {
     "keycode": "Q",
-    "scancode": [32, 0]
+    "location": [32, 0]
   },
   {
     "keycode": "R",
-    "scancode": [33, 0]
+    "location": [33, 0]
   },
   {
     "keycode": "S",
-    "scancode": [34, 0]
+    "location": [34, 0]
   },
   {
     "keycode": ";",
-    "scancode": [35, 0]
+    "location": [35, 0]
   },
   {
     "keycode": "'",
-    "scancode": [36, 0]
+    "location": [36, 0]
   },
   {
     "keycode": "T",
-    "scancode": [37, 0]
+    "location": [37, 0]
   },
   {
     "keycode": "U",
-    "scancode": [38, 0]
+    "location": [38, 0]
   },
   {
     "keycode": "V",
-    "scancode": [39, 0]
+    "location": [39, 0]
   },
   {
     "keycode": "W",
-    "scancode": [40, 0]
+    "location": [40, 0]
   },
   {
     "keycode": "X",
-    "scancode": [41, 0]
+    "location": [41, 0]
   },
   {
     "keycode": "Y",
-    "scancode": [42, 0]
+    "location": [42, 0]
   },
   {
     "keycode": "Z",
-    "scancode": [43, 0]
+    "location": [43, 0]
   },
   {
     "keycode": "<",
-    "scancode": [44, 0]
+    "location": [44, 0]
   },
   {
     "keycode": ">",
-    "scancode": [45, 0]
+    "location": [45, 0]
   },
   {
     "keycode": "?",
-    "scancode": [46, 0]
+    "location": [46, 0]
   }
 ]
