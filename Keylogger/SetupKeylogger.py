@@ -13,7 +13,11 @@ OPTIONS_CONFIG = {
     "auto-start": [False, True],
     "output": ["local", "console", "debug"],
     "hide": [False, True],
-    "exclude-typos": [True, False],
+    "typos":
+    {
+        "exclude-typos": [True, False],
+        "processing-time": [2000]
+        },
     "file-prefix": [""],
     "combination-time": [800],
     "save-intervall": [5000],

@@ -145,6 +145,14 @@ def key_callback(event: KeyboardEvent):
     # Current time when key is pressed
     now_ms = round(event.time * 1000)
 
+    # Remove pressed keys there are to old to delete
+    to_old = []
+    for e in heatmap_order:
+        if now_ms - e["time"] > config["typos"]["processing-time"]:
+            to_old.append(e)
+    for k in to_old:
+        heatmap_order.remove(k)
+
     # while paused no logging
     if paused:
         return False
@@ -189,7 +197,7 @@ def key_callback(event: KeyboardEvent):
         }
     # Backspace
     elif event.name == 'backspace':
-        if config["exclude-typos"]:
+        if config["typos"]["exclude-typos"]:
             if len(heatmap_order) > 0:
                 if len(heatmap_order[-1]["key"]) == 1:
                     heatmap_buffer[heatmap_order[-1]["key"][0]]["mentions"] = heatmap_buffer[heatmap_order[-1]["key"][0]]["mentions"] - 1

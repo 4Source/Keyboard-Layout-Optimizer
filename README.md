@@ -48,9 +48,13 @@ Your pressed Keys **only** get saved on your local computer. You can find them i
 - _hide_
   - **False** (Default) - Console stays visible after starting the Keylogger.
   - **True** - Console will be invisible also with _auto-start_ = True.
-- _exclude-typos_
-  - **True** (Default) - If you use BACKSPACE the last keys get removed from buffer.
-  - **False** - Keep all keys you typed.
+- _typos_
+  - _exclude-typos_
+    - **True** (Default) - If you use BACKSPACE the last keys get removed from buffer.
+    - **False** - Keep all keys you typed.
+  - _processing-time_
+    - **2000** (Default) - How long BACKSPACE could affect the state.
+    - **YOUR-TIME** - This changes the amount of time that has passed since the button was pressed until the button press can no longer be removed.
 - _file-prefix_
   - **""** (Default) - Your files have no prefix.
   - **"YOUR-PREFIX"** - It is posible to prefix your files with a custom prefix. Usefull if you use on mulible computers and will combine all your files in one folder so you get not file name conflicts.
