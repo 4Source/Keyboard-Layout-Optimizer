@@ -54,6 +54,7 @@ Your pressed Keys **only** get saved on your local computer. You can find them i
     - **False** - Keep all keys you typed.
   - _processing-time_
     - **2000** (Default) - How long BACKSPACE could affect the state.
+    - **-1** - All changes from start of the keylogger could be removed. This option is not recommendet.
     - **YOUR-TIME** - This changes the amount of time that has passed since the button was pressed until the button press can no longer be removed.
 - _file-prefix_
   - **""** (Default) - Your files have no prefix.
