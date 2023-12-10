@@ -12,7 +12,7 @@ DIR_PATH = os.path.dirname(os.path.realpath(sys.argv[0]))
 OPTIONS_CONFIG = {
     "auto-start": [False, True],
     "output": ["local", "console", "debug"],
-    "hide": ["never", "ready", "allways"],
+    "hide": ["never", "ready", "instant", "allways"],
     "typos":
     {
         "exclude-typos": [True, False],
@@ -24,7 +24,8 @@ OPTIONS_CONFIG = {
     "hotkeys": {
         "exit-hotkey": ["ctrl+alt+x"],
         "pause-hotkey": ["ctrl+alt+p"],
-        "save-hotkey": ["ctrl+alt+s"]
+        "save-hotkey": ["ctrl+alt+s"],
+        "visible-hotkey": ["ctrl+alt+v"]
     }
 }
 

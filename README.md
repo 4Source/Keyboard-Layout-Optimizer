@@ -46,9 +46,10 @@ Your pressed Keys **only** get saved on your local computer. You can find them i
     - **console** - Key names get printed to console. Requiers _hide_ = False.
     - **debug** - Key presses get printed to the console. Ignores _hide_ config.
 - _hide_
-  - **never** (Default) - Console stays visible after starting the Keylogger.
-  - **ready** - Console will be invisible after the the Setup completted.
-  - **allways** - Console will be invisible also with _auto-start_ = True.
+  - **never** (Default) - Console stays allways visible after starting the Keylogger.
+  - **ready** - Console will be invisible after the the Setup completted. Can be toggled with _visible-hotkey_.
+  - **instant** - Console will be instant invisible. Can be toggled with _visible-hotkey_.
+  - **allways** - Console will be allways invisible.
 - _typos_
   - _exclude-typos_
     - **True** (Default) - If you use BACKSPACE the last keys get removed from buffer.
@@ -76,4 +77,7 @@ Your pressed Keys **only** get saved on your local computer. You can find them i
     - **YOUR-HOTKEY** - **Only** use correct hotkeys. If you unsure how the keys are named you could use _mode_ = console to see the namings. Invalid hotkeys may crash the keylogger.
   - _save-hotkey_
     - **ctrl+alt+s** (Default) - To save the buffer. Usefull is if you wanna save the buffer manually.
+    - **YOUR-HOTKEY** - **Only** use correct hotkeys. If you unsure how the keys are named you could use _mode_ = console to see the namings. Invalid hotkeys may crash the keylogger.
+  - _visible-hotkey_
+    - **ctrl+alt+v** (Default) - To toggle visibility of the Window. Dont affect visibility if _hide_ is "allways". 
     - **YOUR-HOTKEY** - **Only** use correct hotkeys. If you unsure how the keys are named you could use _mode_ = console to see the namings. Invalid hotkeys may crash the keylogger.
