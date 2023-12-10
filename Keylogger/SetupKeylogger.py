@@ -12,7 +12,7 @@ DIR_PATH = os.path.dirname(os.path.realpath(sys.argv[0]))
 OPTIONS_CONFIG = {
     "auto-start": [False, True],
     "output": ["local", "console", "debug"],
-    "hide": [False, True],
+    "hide": ["never", "ready", "allways"],
     "typos":
     {
         "exclude-typos": [True, False],

@@ -46,8 +46,9 @@ Your pressed Keys **only** get saved on your local computer. You can find them i
     - **console** - Key names get printed to console. Requiers _hide_ = False.
     - **debug** - Key presses get printed to the console. Ignores _hide_ config.
 - _hide_
-  - **False** (Default) - Console stays visible after starting the Keylogger.
-  - **True** - Console will be invisible also with _auto-start_ = True.
+  - **never** (Default) - Console stays visible after starting the Keylogger.
+  - **ready** - Console will be invisible after the the Setup completted.
+  - **allways** - Console will be invisible also with _auto-start_ = True.
 - _typos_
   - _exclude-typos_
     - **True** (Default) - If you use BACKSPACE the last keys get removed from buffer.

