@@ -1,4 +1,5 @@
-keylogger-config.json
+*.config.json
 /myBook
 /.vscode
 *.exe
+*/__pycache__

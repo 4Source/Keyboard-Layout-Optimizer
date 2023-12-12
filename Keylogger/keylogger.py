@@ -14,11 +14,12 @@ from datetime import date
 import time
 from threading import Timer
 from winreg import SetValueEx, OpenKey, HKEY_CURRENT_USER, KEY_ALL_ACCESS, REG_SZ, DeleteValue
+from KeyloggerConfig import KeyloggerConfig
 
 # Folder where the pages of your book get logged
 BOOK_PATH = 'myBook'
 # Config File
-CONFIG_FILE = 'keylogger-config.json'
+CONFIG_FILE = 'keylogger.config.json'
 # Name of The Logger (Be carefull changeing this may results in unremoveable registered autostart)
 LOGGER_NAME = "Harmless Keylogger"
 # File path
@@ -26,7 +27,7 @@ CURRENT_FILE_PATH = os.path.realpath(sys.argv[0])
 # Directory path
 DIR_PATH = os.path.dirname(os.path.realpath(sys.argv[0]))
 
-# Config Dict
+# Config object
 config = {}
 # Buffer for Heatmap
 heatmap_buffer = {}
@@ -38,69 +39,40 @@ last_save = 0
 # State of visibility
 visible = True
 
-# Read config from json file
-def read_config():
-    config_path = join(DIR_PATH, CONFIG_FILE)
-    # Check file exist and is not empty
-    if exists(config_path) and not os.stat(config_path).st_size == 0:
-        # Open file and read config 
-        with open(config_path, "r") as read_file:
-            global config
-            config = json.load(read_file)
-            return True
-    else:
-        return False
-
-# Read the configurarion
-if read_config():
-    if not config["hide"] == "allways":
-        print("Successfully load configuration.")
-else:
-    if not config["hide"] == "allways":
-        print("Failed load configuration.")
-    exit()
-
-# Disallowing multiple instances with same prefix
-mutex = win32event.CreateMutex(None, 1, 'mutex_var_Start' + config["file-prefix"])
-if win32api.GetLastError() == winerror.ERROR_ALREADY_EXISTS:
-    mutex = None
-    if not config["hide"] == "allways":
-        print("Multiple instances are not allowed")
-    exit(0)
-
 # Add to startup for persistence
 def add_to_startup():
-    global config
+    global visible
     key_val = r'Software\Microsoft\Windows\CurrentVersion\Run'
     key2change = OpenKey(HKEY_CURRENT_USER, key_val, 0, KEY_ALL_ACCESS)
     reg_value = 'CMD /k "cd ' + DIR_PATH + ' && ' + 'py' + ' ' + '"' + CURRENT_FILE_PATH + '"'
 
     try:
         SetValueEx(key2change, LOGGER_NAME, 0, REG_SZ, reg_value)
-        if not config["hide"] == "allways":
+        if visible:
             print("Keylogger applied to startup.")
     except Exception as e:
-        if not config["hide"] == "allways":
+        if visible:
             print("Error occurred while applying keylogger to startup:")
             print(e)
 
 # Remove from startup 
 def remove_from_startup():
+    global visible
     key_val = r'Software\Microsoft\Windows\CurrentVersion\Run'
     key2change = OpenKey(HKEY_CURRENT_USER, key_val, 0, KEY_ALL_ACCESS)
 
     try:
         DeleteValue(key2change, LOGGER_NAME)  
-        if not config["hide"] == "allways":
+        if visible:
             print("Keylogger removed from startup.")
     except Exception as e:
-        if not config["hide"] == "allways":
+        if visible:
             print("No keylogger is applied to startup.")
 
 # Debug logger
 def log_debug():
     global config, heatmap_buffer
-    if not config["hide"] == "allways":
+    if not config.get_hide() == "allways":
         if len(heatmap_order) > 0:
                 # Print the last pressed key to console
                 if len(heatmap_order[-1]["key"]) == 1:
@@ -129,7 +101,7 @@ def log_local():
     path = join(DIR_PATH, os.pardir, BOOK_PATH)
     if not exists(path):
         os.makedirs(path) 
-    file = join(path, (("" if config["file-prefix"] == "" else config["file-prefix"] + "_") + "heatmap_" + date.today().strftime('%Y-%m-%d') + ".json"))
+    file = join(path, (("" if config.get_file_prefix() == "" else config.get_file_prefix() + "_") + date.today().strftime('%Y-%m-%d') + ".heatmap" + ".json"))
     with open(file, "w") as write_file:
         json.dump(heatmap_buffer, write_file, indent=4)
     return True
@@ -137,11 +109,11 @@ def log_local():
 # Log with configured output
 def log_it():
     global config, last_save
-    if config["output"] == "local":   
-        if round(time.time_ns() / 1000000) - last_save > config["save-intervall"]:
+    if config.get_output() == "local":   
+        if round(time.time_ns() / 1000000) - last_save > config.get_save_intervall():
             last_save = round(time.time_ns() / 1000000)
             return log_local()
-    elif config["output"] == "debug":
+    elif config.get_output() == "debug":
         return log_debug()
     return False
     
@@ -160,26 +132,25 @@ def key_callback(event: KeyboardEvent):
     now_ms = round(event.time * 1000)
 
     # Remove pressed keys there are to old to delete
-    if not config["typos"]["processing-time"] == -1:
+    if not config.get_processing_time() == -1:
         to_old = []
         for e in heatmap_order:
-            if now_ms - e["time"] > config["typos"]["processing-time"]:
+            if now_ms - e["time"] > config.get_processing_time():
                 to_old.append(e)
         for k in to_old:
             heatmap_order.remove(k)
     
     # Console output
-    if config["output"] == 'console':
-        if not config["hide"] == "allways":
-            print("event:",{
-                "name": event.name,
-                "event_type": event.event_type,
-                "scan_code": event.scan_code,
-                "time": event.time,
-                "device": event.device,
-                "is_keypad": event.is_keypad,
-                "modifiers": event.modifiers
-            })
+    if config.get_output() == 'console':
+        print("event:",{
+            "name": event.name,
+            "event_type": event.event_type,
+            "scan_code": event.scan_code,
+            "time": event.time,
+            "device": event.device,
+            "is_keypad": event.is_keypad,
+            "modifiers": event.modifiers
+        })
         return True
     
     key_pressed = {}
@@ -205,7 +176,7 @@ def key_callback(event: KeyboardEvent):
         }
     # Backspace
     elif event.name == 'backspace':
-        if config["typos"]["exclude-typos"]:
+        if config.get_exclude_typos():
             if len(heatmap_order) > 0:
                 if len(heatmap_order[-1]["key"]) == 1:
                     heatmap_buffer[heatmap_order[-1]["key"][0]]["mentions"] = heatmap_buffer[heatmap_order[-1]["key"][0]]["mentions"] - 1
@@ -229,7 +200,7 @@ def key_callback(event: KeyboardEvent):
     if not key_pressed == {}:
         index = [key_pressed["name"]]
         # Add combination key to heatmap
-        if len(heatmap_order) > 0 and now_ms - heatmap_order[-1]["time"] < config["combination-time"]:
+        if len(heatmap_order) > 0 and now_ms - heatmap_order[-1]["time"] < config.get_combination_time():
             if len(heatmap_order[-1]["key"]) == 1:
                 temp = {}
                 temp["name"] = [heatmap_buffer[heatmap_order[-1]["key"][0]]["name"], key_pressed["name"]]
@@ -264,14 +235,14 @@ def key_callback(event: KeyboardEvent):
     return log_it()
 
 def pause_logging():
-    global paused
-    if config["hide"] == "never":
+    global paused, visible
+    if visible:
         print(LOGGER_NAME + (" paused" if not paused else " continue"))
     paused = not paused
 
 def read_heatmap():
     path = join(DIR_PATH, os.pardir, BOOK_PATH)
-    file = join(path, (("" if config["file-prefix"] == "" else config["file-prefix"] + "_") + "heatmap_" + date.today().strftime('%Y-%m-%d') + ".json"))
+    file = join(path, (("" if config.get_file_prefix() == "" else config.get_file_prefix() + "_") + date.today().strftime('%Y-%m-%d') + ".heatmap" + ".json"))
     if exists(file) and not os.stat(file).st_size == 0:
         with open(file, "r") as read_file:
             global heatmap_buffer
@@ -281,7 +252,7 @@ def read_heatmap():
 
 def hide():
     global visible
-    if config["hide"] == "never":
+    if config.get_hide() == "never":
         print("Change visibillity is with this config not allowed!")
     elif visible: 
         # Hide Console
@@ -289,7 +260,7 @@ def hide():
         win32gui.ShowWindow(window, win32con.SW_HIDE)
         visible = False
         return True
-    elif not config["hide"] == "allways":
+    elif not config.get_hide() == "allways":
         # Unhide Console
         window = win32console.GetConsoleWindow()
         win32gui.ShowWindow(window, win32con.SW_NORMAL)
@@ -300,45 +271,59 @@ def hide():
 
 def main():
     global visible
-    if not config["hide"] == "allways":
+    if visible:
         print(LOGGER_NAME + " started")
     # Hide comand prompt
-    if config["hide"] == "ready":
+    if config.get_hide() == "ready":
         timer = Timer(5, hide)
         timer.start()
     keyboard.hook(key_callback)
     # To Pause the Keylogger (ctrl + alt + p)
-    keyboard.add_hotkey(config["hotkeys"]["pause-hotkey"], pause_logging)
+    keyboard.add_hotkey(config.get_pause_hotkey(), pause_logging)
     # To save the buffer (ctrl + alt + s)
-    keyboard.add_hotkey(config["hotkeys"]["save-hotkey"], log_local)
+    keyboard.add_hotkey(config.get_save_hotkey(), log_local)
     # To toggle visibillity of window (ctrl + alt + v)
-    keyboard.add_hotkey(config["hotkeys"]["visible-hotkey"], hide)
+    keyboard.add_hotkey(config.get_visible_hotkey(), hide)
     # To Exit the Keylogger with safing the buffer (ctrl + alt + e)
-    keyboard.wait(config["hotkeys"]["exit-hotkey"]) 
-    if config["output"] == "local":
-        if not log_local() and not config["hide"] == "allways":
+    keyboard.wait(config.get_exit_hotkey()) 
+    if config.get_output() == "local":
+        if not log_local() and visible:
             print("Something went wrong while saving!")
-    if not config["hide"] == "allways":
+    if visible:
         print(LOGGER_NAME + " stopped.")
     exit()
 
 if __name__ == '__main__':
+    # Read the configurarion
+    config = KeyloggerConfig()
+    config.read_config(join(DIR_PATH, CONFIG_FILE)) 
+    if visible:
+        print("Successfully load configuration.")
+
     # Hide comand prompt
-    if config["hide"] == "allways" or config["hide"] == "instant":
+    if config.get_hide() == "allways" or config.get_hide() == "instant":
         hide()
 
+    # Disallowing multiple instances with same prefix
+    mutex = win32event.CreateMutex(None, 1, 'mutex_var_Start' + config.get_file_prefix())
+    if win32api.GetLastError() == winerror.ERROR_ALREADY_EXISTS:
+        mutex = None
+        if visible:
+            print("Multiple instances are not allowed")
+        exit(0)
+
     # Add to startup
-    if config["auto-start"]:
+    if config.get_auto_start():
         add_to_startup()
     else: 
         remove_from_startup()
 
     # Read already saved values 
     if read_heatmap():
-        if not config["hide"] == "allways":
+        if visible:
             print("Loaded existing heatmap.")
     else:
-        if not config["hide"] == "allways":
+        if visible:
             print("No Heatmap for today exist. Will be created.")
 
     # Setup save time

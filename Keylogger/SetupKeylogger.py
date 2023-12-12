@@ -1,247 +1,78 @@
 import os
 from os import system
-from os.path import exists, join
-import json
+from os.path import join
 import sys
+from KeyloggerConfig import KeyloggerConfig
 
-# CONSTANTS
-CONFIG_FILE = 'keylogger-config.json'
+# Config File
+CONFIG_FILE = 'keylogger.config.json'
 # Directory path
 DIR_PATH = os.path.dirname(os.path.realpath(sys.argv[0]))
-# Config options
-OPTIONS_CONFIG = {
-    "auto-start": [False, True],
-    "output": ["local", "console", "debug"],
-    "hide": ["never", "ready", "instant", "allways"],
-    "typos":
-    {
-        "exclude-typos": [True, False],
-        "processing-time": [2000]
-        },
-    "file-prefix": [""],
-    "combination-time": [800],
-    "save-intervall": [5000],
-    "hotkeys": {
-        "exit-hotkey": ["ctrl+alt+x"],
-        "pause-hotkey": ["ctrl+alt+p"],
-        "save-hotkey": ["ctrl+alt+s"],
-        "visible-hotkey": ["ctrl+alt+v"]
-    }
-}
-
+# Config object
 config = {}
 
-def contains_all_options(fix, dict, options_dict):
-    valid = True
-    for k, v in options_dict.items():
-        if not type(options_dict[k]) == type({}):
-            if not k in dict:
-                if fix: dict[k] = v[0]
-                else: valid = False
-            else:
-                if len(v) > 1:
-                    if not dict[k] in v:
-                        if fix: dict[k] = v[0]
-                        else: valid = False
-                else:
-                    if not type(dict[k]) == type(v[0]):
-                        if fix: dict[k] = v[0]
-                        else: valid = False
-        else:
-            if not k in dict: 
-                dict[k] = {}
-            valid = valid if contains_all_options(fix, dict[k], options_dict[k]) else False
-    return valid
-
-def contains_no_invalid_options(fix, dict, options_dict):
-    valid = True
-    invalid = []  
-    for k, v in dict.items():
-        if not k in options_dict:
-            invalid.append(k)
-            valid = False
-
-    if fix: 
-        for k in invalid:
-            dict.pop(k)
-        valid = True
-    return valid
-
-
-def is_valid_config(fix):
-    global config
-    valid = True
-    valid = valid if contains_all_options(fix, config, OPTIONS_CONFIG) else False
-    valid = valid if contains_no_invalid_options(fix, config, OPTIONS_CONFIG) else False
-    
-    return valid
-
-# Read config from json file
-def read_config():
-    config_path = join(DIR_PATH, CONFIG_FILE)
-    # Check file exist and is not empty
-    if exists(config_path) and not os.stat(config_path).st_size == 0:
-        # Open file and read config 
-        with open(config_path, "r") as read_file:
-            global config
-            config = json.load(read_file)
-            return True
-    else:
-        return False
-
-# Write config to json file
-def write_config():
-    config_path = join(DIR_PATH, CONFIG_FILE)
-    with open(config_path, "w") as write_file:
-        global config
-        is_valid_config(True)
-        json.dump(config, write_file, indent=4)
-
-def create_default_config():
-    is_valid_config(True)
-    
-
-# Menu for Configuration
-def display_menu(title, menu):
+# Menu for Configuration12
+def display_menu(title, menu: list):
     system('cls')  # clears stdout
     print(title)
-    for k, menu in menu.items():
-        print(k, menu)
+    for i in range(len(menu)):
+        print(i, menu[i]["label"])
 
-def reset_config_default(conf):
-    config[conf] = OPTIONS_CONFIG[conf][0]
-
-def try_cast(value, type):
-    if type == bool:
-        if value in ['True', 'False']:
-            return value == 'True'
-        else:
-            return value
-    try:
-        return type(value)
-    except:
-        return value
-
-def get_values(dict, key_list):
-    keys = key_list[:]
-    for k, v in dict.items():
-        if k == keys[0]:
-            if type(v) == type({}):
-                del keys[0]
-                return get_values(v, keys)
-            else:
-                return v
-
-def set_value(dict, key_list, value):
-    keys = key_list[:]
-    for k, v in dict.items():
-        if k == keys[0]:
-            if type(v) == type({}):
-                del keys[0]
-                set_value(v, keys, value)
-            else:
-                dict[k] = value
-                break
-
-def change_config_value(conf):
+def change_config_menu(option):
+    menu = [
+        {"label": "change"},
+        {"label": "undo change"},
+        {"label": "reset to default"},
+        {"label": "exit"}
+    ]
     
-    if type(OPTIONS_CONFIG[conf][0]) == bool:
-        if value == "False":
-            value = False
-        elif value == "True":
-            value = True
-        config[conf] = value
-    elif type(OPTIONS_CONFIG[conf][0]) == int:
-        config[conf] = int(value)
-    else:
-        config[conf] = value
-
-def change_config_menu(key_list):
-    menu = {
-        1: "Change",
-        2: "Reset to Default",
-        3: "Undo Change",
-        4: "Save"
-    }
-    
-    tmp = get_values(config, key_list)
+    tmp = option["get"]()
     selection = 0
-    while not selection == 4:
-        val = get_values(config, key_list)
-        name = key_list[-1]
+    while not selection == 3:
+        val = option["get"]()
+        name = option["label"]
         display_menu(name + " (" + str(val) + ")", menu)
         selection = int (
             input("Please enter your selection number: "))
             
         # Change Value
-        if selection == 1:
+        if selection == 0:
             system('cls')  # clears stdout
             value = (input("Input value: "))
-            value = try_cast(value, val.__class__)
-            print(type(value))
-            print(value)
-            set_value(config, key_list, value)
-            if not is_valid_config(False):
-                set_value(config, key_list, tmp)
+            option["set"](value)
         # Reset to Default
-        elif selection == 2:
-            reset_config_default(key_list)
+        elif selection == 1:
+            option["default"]()
         # Undo Change
-        elif selection == 3:
-            set_value(config, key_list, tmp)
-        # Save
-        elif selection == 4:
-            write_config()
+        elif selection == 2:
+            option["set"](tmp)
 
 # Menu for Configuration
-def menu_options(key_list, menu):
-    menu["Reset all to Default"] = 0
-    menu["Exit"] = 0
-    menu_items = dict(enumerate(menu, start=1))
-    menu.pop("Reset all to Default")
-    menu.pop("Exit")
+def menu_options(menu):
+    menu.append({
+        "label": "save and exit"
+    })
 
-    if key_list == "Keylogger Config":
-        display_menu(key_list, menu_items)
-    else:
-        display_menu(key_list[-1], menu_items)
+    display_menu("Keylogger Config", menu)
 
     selection = int(
         input("Please enter your selection number: "))
-    
-    if menu_items[selection] == "Reset all to Default":
-        create_default_config()
-        write_config()
-    elif menu_items[selection] == "Exit":
+
+    if menu[selection]["label"] == "save and exit":
         return False
-    elif type(menu[menu_items[selection]]) == type({}):
-        if key_list == "Keylogger Config":
-            menu_options([menu_items[selection]], menu[menu_items[selection]])
-        else:
-            key_list.append(menu_items[selection])
-            menu_options(key_list, menu[menu_items[selection]])
     else:    
-        if key_list == "Keylogger Config":
-            change_config_menu([menu_items[selection]])
-        else:
-            key_list.append(menu_items[selection])
-            change_config_menu(key_list)
+        change_config_menu(menu[selection])
     return True
 
 def main():
-    if not read_config():
-        create_default_config()
-        write_config()
-    else: 
-        is_valid_config(True)
-
     global config
+    config = KeyloggerConfig()
+    config.read_config(join(DIR_PATH, CONFIG_FILE))  
 
     running = True
     while running:
-        running = menu_options("Keylogger Config", config)
-    write_config()
-
+        running = menu_options(config.get_options())
+    config.write_config(join(DIR_PATH, CONFIG_FILE))
 
 if __name__ == "__main__":
     main()
