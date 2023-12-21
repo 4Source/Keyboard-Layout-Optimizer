@@ -22,7 +22,7 @@ def combine(buffer):
 def combine_json():
     path = join(DIR_PATH, os.pardir, BOOK_PATH)
     for file in os.listdir(path):
-        if file == "heatmap.final.json":
+        if file == "final.heatmap.json":
             continue
         if file.endswith("json"):
             with open(join(path, file), "r") as read_file:
@@ -67,7 +67,7 @@ def save_heatmap():
     heatmap_buffer = dict(sorted_buffer)
     # Save in file
     path = join(DIR_PATH, os.pardir, BOOK_PATH)      
-    file = join(path,  "heatmap.final.json")
+    file = join(path,  "final.heatmap.json")
     with open(file, "w") as write_file:
         json.dump(heatmap_buffer, write_file, indent=4)
                 
@@ -78,6 +78,6 @@ def main():
     combine_page()
     save_heatmap()
     print("Combine heatmap completted.")
-    print("Result in 'heatmap.final.json'")
+    print("Result in 'final.heatmap.json'")
 
 main()
