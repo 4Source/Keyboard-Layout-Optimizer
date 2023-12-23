@@ -17,6 +17,9 @@ You feelt like the standard keyboard layout isn't a charm? Or just wanna try Ano
         1. Install Python
             - If you havend allready you need to install [Python 3](https://www.python.org/downloads/).
         2. Install Requirements
+            - ```pip install -r requirements.txt``` 
+
+              or install requirements by your self
             - ```pip install ...``` see [requirements](https://github.com/4Source/Keyboard-Layout-Optimizer/blob/0559009ecdf047fd0d607f1708d0e4a9043dff64/python%20requirements.txt)
         3. Setup Keylogger
             - ```python SetupKeylogger.py```
