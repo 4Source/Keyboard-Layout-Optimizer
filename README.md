@@ -38,6 +38,9 @@ You feelt like the standard keyboard layout isn't a charm? Or just wanna try Ano
 This isn't a must, but if you leave it running for a few weeks while you type on your computer, you'll get a personalized keyboard layout based on your most frequently used keys. This keylogger cannot send your files to other locations, but it is **strongly recommended** to pause the keylogger using the _pause-hotkey_ while typing passwords. Your passwords wont be saved in plane text but will stay in keylogger till stopped the keylogger.
 > [!Note]
 > It is **strongly recommended** to pause the keylogger using the _pause-hotkey_ while typing passwords.
+
+> [!Note]
+> While **playing games** also pause the keylogger using the _pause-hotkey_ because the inputs while playing games would affect the rating of the layout with keys there not important for writing text.
 ## Where get it saved?
 Your pressed Keys **only** get saved on your local computer. You can find them in _myBook_ which get created if your first keys get logged. Inside you will find _heatmap_ with the count of pressed keys. 
 ## Configs
