@@ -121,10 +121,26 @@ def log_keys():
         log_local()
     elif config.get_output() == "debug":
         log_debug()
+
+    # Remove pressed keys there are to old
+    delete_old_key_presses()
+
     # Start Timer
     timer = Timer(config.get_save_intervall()/1000, log_keys)
     timer.name = "Logging"
     timer.start()
+
+def delete_old_key_presses():
+    # Current time when key is pressed
+    now_ms = round(time.time_ns() / 1000)
+
+    if not config.get_processing_time() == -1:
+        to_old = []
+        for e in heatmap_order:
+            if now_ms - e["time"] > config.get_processing_time():
+                to_old.append(e)
+        for k in to_old:
+            heatmap_order.remove(k)
     
 def key_callback(event: KeyboardEvent):
     global heatmap_buffer, heatmap_order, paused
@@ -136,18 +152,9 @@ def key_callback(event: KeyboardEvent):
     # event key up 
     if event.event_type == 'up':
         return
-    
-    # Current time when key is pressed
-    now_ms = round(event.time * 1000)
 
-    # Remove pressed keys there are to old to delete
-    if not config.get_processing_time() == -1:
-        to_old = []
-        for e in heatmap_order:
-            if now_ms - e["time"] > config.get_processing_time():
-                to_old.append(e)
-        for k in to_old:
-            heatmap_order.remove(k)
+    # Remove pressed keys there are to old
+    delete_old_key_presses()
     
     # Console output
     if config.get_output() == 'console':
