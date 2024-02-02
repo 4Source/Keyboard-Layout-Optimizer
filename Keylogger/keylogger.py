@@ -39,6 +39,9 @@ last_save = 0
 # State of visibility
 visible = True
 
+def to_tuple(list_in = []):
+    return tuple(to_tuple(i) if isinstance(i, list) else i for i in list_in)
+
 # Add to startup for persistence
 def add_to_startup():
     global visible
@@ -140,6 +143,15 @@ def delete_old_key_presses(now_ms = round(time.time_ns() / 1000)):
         for k in to_old:
             heatmap_order.remove(k)
     
+def add_to_heatmap_buffer(hash_name, key_pressed):
+    if hash_name in heatmap_buffer and "mentions" in heatmap_buffer[hash_name]:
+        # Increase count of existing
+        heatmap_buffer[hash_name]["mentions"] = heatmap_buffer[hash_name]["mentions"] + 1
+    else:
+        # Add new key
+        key_pressed["mentions"] = 1
+        heatmap_buffer[hash_name] = key_pressed
+
 def key_callback(event: KeyboardEvent):
     global heatmap_buffer, heatmap_order, paused
 
@@ -151,6 +163,8 @@ def key_callback(event: KeyboardEvent):
     if event.event_type == 'up':
         return
 
+    now_ms = event.time * 1000
+
     # Remove pressed keys there are to old
     delete_old_key_presses(now_ms)
     
@@ -160,7 +174,7 @@ def key_callback(event: KeyboardEvent):
             "name": event.name,
             "event_type": event.event_type,
             "scan_code": event.scan_code,
-            "time": event.time,
+            "time": now_ms,
             "device": event.device,
             "is_keypad": event.is_keypad,
             "modifiers": event.modifiers
@@ -170,22 +184,22 @@ def key_callback(event: KeyboardEvent):
     key_pressed = {}
     # Key Represention
     # Shift
-    if event.scan_code == 42 or event.scan_code == 54:
+    if event.scan_code == 42 or event.scan_code == 54 or event.scan_code == 58:
         return
     # Space
     elif event.name == 'space':
         key_pressed = {
-            "name": event.name,
             "scancode": event.scan_code,
-            "value": " ",
+            "name": [event.name],
+            "value": [" "],
             "length": 1
         }
     # Enter
     elif event.name == 'enter':
         key_pressed = {
-            "name": event.name,
             "scancode": event.scan_code,
-            "value": "\n",
+            "name": [event.name],
+            "value": ["\n"],
             "length": 1
         }
     # Backspace
@@ -201,9 +215,9 @@ def key_callback(event: KeyboardEvent):
     # Letters
     elif len(event.name) == 1:
         key_pressed = {
-        "name": event.name,
         "scancode": event.scan_code,
-        "value": event.name,
+        "name": [event.name],
+        "value": [event.name],
         "length": 1
         }
     # Other
@@ -211,38 +225,27 @@ def key_callback(event: KeyboardEvent):
         print("Not saved key: ")
         print(event.name, event.scan_code)
     
-    if not key_pressed == {}:
-        index = [key_pressed["name"]]
+    if not key_pressed == {}:        
         # Add combination key to heatmap
         if len(heatmap_order) > 0 and now_ms - heatmap_order[-1]["time"] < config.get_combination_time():
-            if len(heatmap_order[-1]["key"]) == 1:
-                temp = {}
-                temp["name"] = [heatmap_buffer[heatmap_order[-1]["key"][0]]["name"], key_pressed["name"]]
-                temp["scancode"] = [heatmap_buffer[heatmap_order[-1]["key"][0]]["scancode"], key_pressed["scancode"]]
-                temp["value"] = [heatmap_buffer[heatmap_order[-1]["key"][0]]["value"], key_pressed["value"]]
-                temp["length"] = 2
-                index = [temp["name"][0], temp["name"][1]]
-            elif len(heatmap_order[-1]["key"]) == 2:
-                temp = {}
-                temp["name"] = [heatmap_buffer[heatmap_order[-1]["key"][-1]]["name"], key_pressed["name"]]
-                temp["scancode"] = [heatmap_buffer[heatmap_order[-1]["key"][-1]]["scancode"], key_pressed["scancode"]]
-                temp["value"] = [heatmap_buffer[heatmap_order[-1]["key"][-1]]["value"], key_pressed["value"]]
-                temp["length"] = 2
-                index = [temp["name"][0], temp["name"][1]]
-            if (temp["name"][0] + temp["name"][1]) in heatmap_buffer and "mentions" in heatmap_buffer[(temp["name"][0] + temp["name"][1])]:
-                heatmap_buffer[(temp["name"][0] + temp["name"][1])]["mentions"] = heatmap_buffer[(temp["name"][0] + temp["name"][1])]["mentions"] + 1
-            else:
-                temp["mentions"] = 1
-                heatmap_buffer[(temp["name"][0] + temp["name"][1])] = temp
+            temp = {}
+            # Key combination
+            temp["name"] = [heatmap_buffer[heatmap_order[-1]["key"]]["name"][-1], key_pressed["name"][0]]
+            temp["scancode"] = [heatmap_buffer[heatmap_order[-1]["key"]]["scancode"][-1], key_pressed["scancode"][0]]
+            temp["value"] = [heatmap_buffer[heatmap_order[-1]["key"]]["value"][-1], key_pressed["value"][0]]
+            temp["length"] = 2
+            
+            # Add combination to heatmap
+            hash_name = str(hash((to_tuple([temp["name"][0], temp["name"][1]]), to_tuple(temp["scancode"]))))
+            add_to_heatmap_buffer(hash_name, temp)
+        
         # Add single key to heatmap
-        if key_pressed["name"] in heatmap_buffer and "mentions" in heatmap_buffer[key_pressed["name"]]:
-            heatmap_buffer[key_pressed["name"]]["mentions"] = heatmap_buffer[key_pressed["name"]]["mentions"] + 1
-        else:
-            key_pressed["mentions"] = 1
-            heatmap_buffer[key_pressed["name"]] = key_pressed
+        hash_name = str(hash((to_tuple(key_pressed["name"]), to_tuple(key_pressed["scancode"]))))
+        add_to_heatmap_buffer(hash_name, key_pressed)
 
+        # Add key to currently pressed keys
         heatmap_order.append({
-            "key": index,
+            "key": hash_name,
             "time": now_ms
         })
 
