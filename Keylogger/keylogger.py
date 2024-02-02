@@ -89,12 +89,9 @@ def log_debug():
                 # Print the last pressed key to console
                 if len(heatmap_order[-1]["key"]) == 1:
                     print(heatmap_buffer[heatmap_order[-1]["key"][0]])
-                    return True
                 # Print the last pressed keycombinaiton to console
                 elif len(heatmap_order[-1]["key"]) == 2:
                     print(heatmap_buffer[heatmap_order[-1]["key"][0] + heatmap_order[-1]["key"][1]])
-                    return True
-    return False
 
 # Append file with pressed keys
 def log_local():
@@ -116,18 +113,18 @@ def log_local():
     file = join(path, (("" if config.get_file_prefix() == "" else config.get_file_prefix() + "_") + date.today().strftime('%Y-%m-%d') + ".heatmap" + ".json"))
     with open(file, "w") as write_file:
         json.dump(heatmap_buffer, write_file, indent=4)
-    return True
 
 # Log with configured output
-def log_it():
+def log_keys():
     global config, last_save
     if config.get_output() == "local":   
-        if round(time.time_ns() / 1000000) - last_save > config.get_save_intervall():
-            last_save = round(time.time_ns() / 1000000)
-            return log_local()
+        log_local()
     elif config.get_output() == "debug":
-        return log_debug()
-    return False
+        log_debug()
+    # Start Timer
+    timer = Timer(config.get_save_intervall()/1000, log_keys)
+    timer.name = "Logging"
+    timer.start()
     
 def key_callback(event: KeyboardEvent):
     global heatmap_buffer, heatmap_order, paused
@@ -135,7 +132,7 @@ def key_callback(event: KeyboardEvent):
     # while paused no logging
     if paused:
         return False
-    
+
     # event key up 
     if event.event_type == 'up':
         return False
@@ -243,8 +240,6 @@ def key_callback(event: KeyboardEvent):
             "key": index,
             "time": now_ms
         })
-    
-    return log_it()
 
 def pause_logging():
     global paused, visible
@@ -288,7 +283,10 @@ def main():
     # Hide comand prompt
     if config.get_hide() == "ready":
         timer = Timer(5, hide)
+        timer.name = "Ready cooldown"
         timer.start()
+    log_keys()
+    # Attache callback for keypress
     keyboard.hook(key_callback)
     # To Pause the Keylogger (ctrl + alt + p)
     keyboard.add_hotkey(config.get_pause_hotkey(), pause_logging)
