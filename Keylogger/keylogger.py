@@ -130,9 +130,7 @@ def log_keys():
     timer.name = "Logging"
     timer.start()
 
-def delete_old_key_presses():
-    # Current time when key is pressed
-    now_ms = round(time.time_ns() / 1000)
+def delete_old_key_presses(now_ms = round(time.time_ns() / 1000)):   
 
     if not config.get_processing_time() == -1:
         to_old = []
@@ -154,7 +152,7 @@ def key_callback(event: KeyboardEvent):
         return
 
     # Remove pressed keys there are to old
-    delete_old_key_presses()
+    delete_old_key_presses(now_ms)
     
     # Console output
     if config.get_output() == 'console':
