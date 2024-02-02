@@ -131,11 +131,11 @@ def key_callback(event: KeyboardEvent):
 
     # while paused no logging
     if paused:
-        return False
+        return    
 
     # event key up 
     if event.event_type == 'up':
-        return False
+        return
     
     # Current time when key is pressed
     now_ms = round(event.time * 1000)
@@ -160,13 +160,13 @@ def key_callback(event: KeyboardEvent):
             "is_keypad": event.is_keypad,
             "modifiers": event.modifiers
         })
-        return True
+        return
     
     key_pressed = {}
     # Key Represention
     # Shift
     if event.scan_code == 42 or event.scan_code == 54:
-        return False
+        return
     # Space
     elif event.name == 'space':
         key_pressed = {
