@@ -134,7 +134,6 @@ def log_keys():
     timer.start()
 
 def delete_old_key_presses(now_ms = round(time.time_ns() / 1000)):   
-
     if not config.get_processing_time() == -1:
         to_old = []
         for e in heatmap_order:
@@ -189,7 +188,7 @@ def key_callback(event: KeyboardEvent):
     # Space
     elif event.name == 'space':
         key_pressed = {
-            "scancode": event.scan_code,
+            "scancode": [event.scan_code],
             "name": [event.name],
             "value": [" "],
             "length": 1
@@ -197,7 +196,7 @@ def key_callback(event: KeyboardEvent):
     # Enter
     elif event.name == 'enter':
         key_pressed = {
-            "scancode": event.scan_code,
+            "scancode": [event.scan_code],
             "name": [event.name],
             "value": ["\n"],
             "length": 1
@@ -215,7 +214,7 @@ def key_callback(event: KeyboardEvent):
     # Letters
     elif len(event.name) == 1:
         key_pressed = {
-        "scancode": event.scan_code,
+        "scancode": [event.scan_code],
         "name": [event.name],
         "value": [event.name],
         "length": 1
@@ -236,16 +235,17 @@ def key_callback(event: KeyboardEvent):
             temp["length"] = 2
             
             # Add combination to heatmap
-            hash_name = str(hash((to_tuple([temp["name"][0], temp["name"][1]]), to_tuple(temp["scancode"]))))
-            add_to_heatmap_buffer(hash_name, temp)
+            key = temp["name"][0] + temp["name"][1]
+            print(key)
+            add_to_heatmap_buffer(key, temp)
         
         # Add single key to heatmap
-        hash_name = str(hash((to_tuple(key_pressed["name"]), to_tuple(key_pressed["scancode"]))))
-        add_to_heatmap_buffer(hash_name, key_pressed)
+        key = key_pressed["name"][0]
+        add_to_heatmap_buffer(key, key_pressed)
 
         # Add key to currently pressed keys
         heatmap_order.append({
-            "key": hash_name,
+            "key": key,
             "time": now_ms
         })
 
