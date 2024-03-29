@@ -32,6 +32,8 @@ config = {}
 # Buffer for Heatmap
 heatmap_buffer = {}
 heatmap_order = []
+# Pressed Keys
+pressed_keys = []
 # Paused logging
 paused = False
 # Time when the last save of the heatmap was
@@ -117,6 +119,29 @@ def log_local():
     with open(file, "w") as write_file:
         json.dump(heatmap_buffer, write_file, indent=4)
 
+def log_key_press(key: KeyboardEvent, pressed_keys: list):
+    # Save in file
+    path = join(DIR_PATH, os.pardir, BOOK_PATH)
+    if not exists(path):
+        os.makedirs(path) 
+    file = join(path, (("" if config.get_file_prefix() == "" else config.get_file_prefix() + "_") + date.today().strftime('%Y-%m-%d') + ".list" + ".json"))
+    
+    data = []
+    if exists(file):
+        with open(file) as f:
+            data = json.load(f)
+   
+    data.append({
+            "name": key.name,
+            "scancode": key.scan_code,
+            "pressed": pressed_keys
+        })  
+
+    data = sorted(data, key=lambda d: d['scancode'])
+
+    with open(file, 'w') as f:
+        json.dump(data, f, indent=4)
+
 # Log with configured output
 def log_keys():
     global config, last_save
@@ -152,14 +177,17 @@ def add_to_heatmap_buffer(hash_name, key_pressed):
         heatmap_buffer[hash_name] = key_pressed
 
 def key_callback(event: KeyboardEvent):
-    global heatmap_buffer, heatmap_order, paused
+    global heatmap_buffer, heatmap_order, paused, pressed_keys
 
     # while paused no logging
     if paused:
         return    
 
     # event key up 
-    if event.event_type == 'up':
+    if event.event_type == 'down':
+        # add keys to pressed state
+        if(not event.scan_code in pressed_keys):
+            pressed_keys.append(event.scan_code)
         return
 
     now_ms = event.time * 1000
@@ -173,31 +201,43 @@ def key_callback(event: KeyboardEvent):
             "name": event.name,
             "event_type": event.event_type,
             "scan_code": event.scan_code,
+            "pressed": pressed_keys.copy(),
             "time": now_ms,
             "device": event.device,
             "is_keypad": event.is_keypad,
             "modifiers": event.modifiers
         })
+        # remove keys from pressed state
+        if(event.scan_code in pressed_keys):
+            pressed_keys.remove(event.scan_code)
         return
+    
+    # Full log list
+    log_key_press(event, pressed_keys.copy())
     
     key_pressed = {}
     # Key Represention
     # Shift
     if event.scan_code == 42 or event.scan_code == 54 or event.scan_code == 58:
+        # remove keys from pressed state
+        if(event.scan_code in pressed_keys):
+            pressed_keys.remove(event.scan_code)
         return
     # Space
     elif event.name == 'space':
         key_pressed = {
-            "scancode": [event.scan_code],
             "name": [event.name],
+            "scancode": [event.scan_code],
+            "pressed": [pressed_keys.copy()],
             "value": [" "],
             "length": 1
         }
     # Enter
     elif event.name == 'enter':
         key_pressed = {
-            "scancode": [event.scan_code],
             "name": [event.name],
+            "scancode": [event.scan_code],
+            "pressed": [pressed_keys.copy()],
             "value": ["\n"],
             "length": 1
         }
@@ -214,15 +254,12 @@ def key_callback(event: KeyboardEvent):
     # Letters
     elif len(event.name) == 1:
         key_pressed = {
-        "scancode": [event.scan_code],
         "name": [event.name],
+        "scancode": [event.scan_code],
+        "pressed": [pressed_keys.copy()],
         "value": [event.name],
         "length": 1
         }
-    # Other
-    else:
-        print("Not saved key: ")
-        print(event.name, event.scan_code)
     
     if not key_pressed == {}:        
         # Add combination key to heatmap
@@ -231,6 +268,7 @@ def key_callback(event: KeyboardEvent):
             # Key combination
             temp["name"] = [heatmap_buffer[heatmap_order[-1]["key"]]["name"][-1], key_pressed["name"][0]]
             temp["scancode"] = [heatmap_buffer[heatmap_order[-1]["key"]]["scancode"][-1], key_pressed["scancode"][0]]
+            temp["pressed"] = [heatmap_buffer[heatmap_order[-1]["key"]]["pressed"][-1], key_pressed["pressed"][0]]
             temp["value"] = [heatmap_buffer[heatmap_order[-1]["key"]]["value"][-1], key_pressed["value"][0]]
             temp["length"] = 2
             
@@ -248,6 +286,11 @@ def key_callback(event: KeyboardEvent):
             "key": key,
             "time": now_ms
         })
+
+    # remove keys from pressed state
+    if(event.scan_code in pressed_keys):
+        pressed_keys.remove(event.scan_code)
+
 
 def pause_logging():
     global paused, visible
