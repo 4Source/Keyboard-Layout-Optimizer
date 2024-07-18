@@ -15,6 +15,7 @@ import time
 from threading import Timer
 from winreg import SetValueEx, EnumValue, QueryInfoKey, DeleteValue, OpenKey, CloseKey, HKEY_CURRENT_USER, KEY_ALL_ACCESS, REG_SZ
 from KeyloggerConfig import KeyloggerConfig
+import ctypes
 
 # Folder where the pages of your book get logged
 BOOK_PATH = 'myBook'
@@ -40,6 +41,9 @@ paused = False
 last_save = 0
 # State of visibility
 visible = True
+# Import necessary functions from the Windows API
+user32 = ctypes.windll.user32
+kernel32 = ctypes.windll.kernel32
 
 def to_tuple(list_in = []):
     return tuple(to_tuple(i) if isinstance(i, list) else i for i in list_in)
@@ -98,9 +102,19 @@ def log_debug():
                 elif len(heatmap_order[-1]["key"]) == 2:
                     print(heatmap_buffer[heatmap_order[-1]["key"][0] + heatmap_order[-1]["key"][1]])
 
+# Function to block shutdown
+def block_shutdown():
+    user32.ShutdownBlockReasonCreate(kernel32.GetCurrentProcess(), "Saving file, please wait...")
+
+# Function to allow shutdown
+def allow_shutdown():
+    user32.ShutdownBlockReasonDestroy(kernel32.GetCurrentProcess())
+
 # Append file with pressed keys
 def log_local():
     global config, heatmap_buffer 
+    # Prevent shutdown
+    block_shutdown()
     # Remove elements with mentions = 0     
     unused = []
     for k,v in heatmap_buffer.items():
@@ -118,6 +132,8 @@ def log_local():
     file = join(path, (("" if config.get_file_prefix() == "" else config.get_file_prefix() + "_") + date.today().strftime('%Y-%m-%d') + ".heatmap" + ".json"))
     with open(file, "w") as write_file:
         json.dump(heatmap_buffer, write_file, indent=4)
+    # Allow shutdown
+    allow_shutdown()
 
 def log_key_press(key: KeyboardEvent, pressed_keys: list):
     # Save in file
