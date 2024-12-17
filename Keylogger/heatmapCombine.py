@@ -13,6 +13,8 @@ heatmap_buffer = {}
 
 def combine(buffer):
     global heatmap_buffer
+    if not hasattr(buffer, 'items') or not callable(getattr(buffer, 'items')):
+        raise Exception('Buffer missing callable items')
     for k,v in buffer.items():
         if k in heatmap_buffer:
             heatmap_buffer[k]["mentions"] = heatmap_buffer[k]["mentions"] + buffer[k]["mentions"]
@@ -32,7 +34,10 @@ def combine_json():
             if file.endswith(".heatmap.json"):
                 with open(join(path, file), "r") as read_file:
                     temp_buffer = json.load(read_file)
-                    combine(temp_buffer)
+                    try:
+                        combine(temp_buffer)
+                    except Exception as error:
+                        print(repr(error) + ' in File: ' + file)
             if file.endswith(".list.json"):
                 skipped = skipped + 1
                 continue
