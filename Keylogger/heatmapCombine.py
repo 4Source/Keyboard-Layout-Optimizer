@@ -22,26 +22,29 @@ def combine(buffer):
             heatmap_buffer[k] = buffer[k]
 
 def combine_json():
-    skipped = 0
-    total = 0
+    skippedCount = 0
+    errorCount = 0
+    totalCount = 0
     path = join(DIR_PATH, os.pardir, BOOK_PATH)
     for file in os.listdir(path):
-        if file.endswith("json"):
-            total = total + 1
-            if file == "final.heatmap.json":
-                skipped = skipped + 1
-                continue
-            if file.endswith(".heatmap.json"):
-                with open(join(path, file), "r") as read_file:
-                    temp_buffer = json.load(read_file)
-                    try:
+        try:
+            if file.endswith("json"):
+                totalCount = totalCount + 1
+                if file == "final.heatmap.json":
+                    skippedCount = skippedCount + 1
+                    continue
+                if file.endswith(".heatmap.json"):
+                    with open(join(path, file), "r") as read_file:
+                        temp_buffer = json.load(read_file)
                         combine(temp_buffer)
-                    except Exception as error:
-                        print(repr(error) + ' in File: ' + file)
-            if file.endswith(".list.json"):
-                skipped = skipped + 1
-                continue
-    print("Json files (" + str(total - skipped) + "/" + str(total) + ")")
+                if file.endswith(".list.json"):
+                    skippedCount = skippedCount + 1
+                    continue
+        except Exception as error:
+            print(repr(error) + ' in File: ' + file)
+            errorCount = errorCount + 1
+    print("Json files (" + str(totalCount - skippedCount - errorCount) + "/" + str(totalCount) + ")")
+    print("Canceld files (" + str(errorCount) + "/" + str(totalCount) + ")")
 
 def combine_page():
     skipped = 0
