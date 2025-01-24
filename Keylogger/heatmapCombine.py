@@ -9,7 +9,11 @@ BOOK_PATH = 'myBook'
 DIR_PATH = os.path.dirname(os.path.realpath(sys.argv[0]))
 
 # Buffer for Heatmap
-heatmap_buffer = {}
+heatmap_buffer = {
+    "total": {
+        "mentions": 0
+    }
+}
 
 def combine(buffer):
     global heatmap_buffer
@@ -20,6 +24,7 @@ def combine(buffer):
             heatmap_buffer[k]["mentions"] = heatmap_buffer[k]["mentions"] + buffer[k]["mentions"]
         else:
             heatmap_buffer[k] = buffer[k]
+        heatmap_buffer["total"]["mentions"] = heatmap_buffer["total"]["mentions"] + buffer[k]["mentions"]
 
 def combine_json():
     skippedCount = 0
