@@ -1,6 +1,6 @@
 import json
 import os
-from os.path import join
+from os.path import join, getsize
 import sys
 
 # Folder where the pages of your book get logged
@@ -28,10 +28,13 @@ def combine(buffer):
 
 def combine_json():
     skippedCount = 0
+    removedCount = 0
+    fixedCount = 0
     errorCount = 0
     totalCount = 0
     path = join(DIR_PATH, os.pardir, BOOK_PATH)
     for file in os.listdir(path):
+        filePath = join(path, file)
         try:
             if file.endswith("json"):
                 totalCount = totalCount + 1
@@ -39,17 +42,37 @@ def combine_json():
                     skippedCount = skippedCount + 1
                     continue
                 if file.endswith(".heatmap.json"):
-                    with open(join(path, file), "r") as read_file:
-                        temp_buffer = json.load(read_file)
-                        combine(temp_buffer)
+                    if getsize(filePath) == 0:
+                        print("Removed empty file: " + file)
+                        os.remove(filePath)
+                        removedCount = removedCount + 1
+                        continue
+                    try:
+                        with open(filePath, "r") as read_file:
+                            temp_buffer = json.load(read_file)
+                            combine(temp_buffer)
+                    except json.JSONDecodeError as error:
+                        print("JSON decode error in file " + file + ", trying to fix...")
+                        with open(filePath, "r") as read_file:
+                            broken_data = read_file.read()
+
+                        fixed_data = json.loads(broken_data + "\n}")
+                        combine(fixed_data)
+                        with open(filePath, "w") as write_file:
+                            json.dump(fixed_data, write_file, indent=4)
+                        fixedCount = fixedCount + 1
+                        print("Fixed file: " + file)
+
                 if file.endswith(".list.json"):
                     skippedCount = skippedCount + 1
                     continue
         except Exception as error:
             print(repr(error) + ' in File: ' + file)
             errorCount = errorCount + 1
-    print("Json files (" + str(totalCount - skippedCount - errorCount) + "/" + str(totalCount) + ")")
-    print("Canceld files (" + str(errorCount) + "/" + str(totalCount) + ")")
+    print("Processed files (" + str(totalCount - skippedCount - errorCount - removedCount) + "/" + str(totalCount) + ")")
+    print("Fixed files (" + str(fixedCount) + "/" + str(totalCount) + ")")
+    print("Canceled files (" + str(errorCount) + "/" + str(totalCount) + ")")
+    print("Removed files (" + str(removedCount) + "/" + str(totalCount) + ")")
 
 def combine_page():
     skipped = 0
