@@ -241,7 +241,7 @@ def key_callback(event: KeyboardEvent):
         return
     # Ctrl + Alt 
     elif 29 in pressed_keys and 56 in pressed_keys:
-        name = ''
+        name = 'ctrlalt'
         if event.name == '7':
             name = '{'
         elif event.name == '8':
@@ -261,14 +261,40 @@ def key_callback(event: KeyboardEvent):
         elif event.name == 'q':
             name = '@'
 
-        if not name == '':
-            key_pressed = {
-                "name": [name],
-                "scancode": [event.scan_code],
-                "pressed": [pressed_keys.copy()],
-                "value": [" "],
-                "length": 1
-            }
+        key_pressed = {
+            "name": [name],
+            "scancode": [event.scan_code],
+            "pressed": [pressed_keys.copy()],
+            "value": [name],
+            "length": 1
+        }
+    # Ctrl
+    elif 29 in pressed_keys:
+        key_pressed = {
+            "name": ['ctrl'],
+            "scancode": [event.scan_code],
+            "pressed": [pressed_keys.copy()],
+            "value": [""],
+            "length": 1
+        }
+    # Alt
+    elif 56 in pressed_keys:
+        key_pressed = {
+            "name": ['alt'],
+            "scancode": [event.scan_code],
+            "pressed": [pressed_keys.copy()],
+            "value": [""],
+            "length": 1
+        }
+    # AltGr
+    elif 541 in pressed_keys:
+        key_pressed = {
+            "name": ['altgr'],
+            "scancode": [event.scan_code],
+            "pressed": [pressed_keys.copy()],
+            "value": [""],
+            "length": 1
+        }
     # Space
     elif event.name == 'space':
         key_pressed = {
