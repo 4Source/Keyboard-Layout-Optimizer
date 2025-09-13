@@ -128,7 +128,7 @@ def main():
     combine_json()
     combine_page()
     save_heatmap()
-    print("Combine heatmap completted.")
+    print("Combine heatmap completed.")
     print("Result in 'final.heatmap.json'")
 
 main()

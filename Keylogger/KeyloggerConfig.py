@@ -17,7 +17,7 @@ class KeyloggerConfig:
     _processing_time: int
     _file_prefix: str
     _combination_time: int
-    _save_interfall: int
+    _save_interval: int
     _exit_hotkey: str
     _pause_hotkey: str
     _save_hotkey: str
@@ -31,7 +31,7 @@ class KeyloggerConfig:
         self.set_default_processing_time()
         self.set_default_file_prefix()
         self.set_default_combination_time()
-        self.set_default_save_intervall()
+        self.set_default_save_interval()
         self.set_default_exit_hotkey()
         self.set_default_pause_hotkey()
         self.set_default_save_hotkey()
@@ -62,8 +62,8 @@ class KeyloggerConfig:
                 self.set_file_prefix(config_json["file-prefix"])
             if "combination-time" in config_json:
                 self.set_combination_time(config_json["combination-time"])
-            if "save-intervall" in config_json:
-                self.set_save_intervall(config_json["save-intervall"])
+            if "save-interval" in config_json:
+                self.set_save_interval(config_json["save-interval"])
             if "hotkeys" in config_json:
                 if "exit-hotkey" in config_json["hotkeys"]:
                     self.set_exit_hotkey(config_json["hotkeys"]["exit-hotkey"])
@@ -85,7 +85,7 @@ class KeyloggerConfig:
         config_json["typos"]["processing-time"] = self.get_processing_time()
         config_json["file-prefix"] = self.get_file_prefix()
         config_json["combination-time"] = self.get_combination_time()
-        config_json["save-intervall"] = self.get_save_intervall()
+        config_json["save-interval"] = self.get_save_interval()
         config_json["hotkeys"] = {}
         config_json["hotkeys"]["exit-hotkey"] = self.get_exit_hotkey()
         config_json["hotkeys"]["pause-hotkey"] = self.get_pause_hotkey()
@@ -146,11 +146,11 @@ class KeyloggerConfig:
             "default": self.set_default_combination_time
         })
         options.append({
-            "label": "save-intervall",
+            "label": "save-interval",
             "description": "", 
-            "get": self.get_save_intervall,
-            "set": self.set_save_intervall,
-            "default": self.set_default_save_intervall
+            "get": self.get_save_interval,
+            "set": self.set_save_interval,
+            "default": self.set_default_save_interval
         })
         options.append({
             "label": "exit-hotkey",
@@ -206,7 +206,7 @@ class KeyloggerConfig:
         return self._hide
 
     def set_hide(self, value: str): 
-        if value in ["never", "ready", "instant", "allways"]:
+        if value in ["never", "ready", "instant", "always"]:
             self._hide = value
     
     def set_default_hide(self):
@@ -251,15 +251,15 @@ class KeyloggerConfig:
     def set_default_combination_time(self):
         self.set_combination_time(800)
 
-    def get_save_intervall(self): 
-        return self._save_interfall
+    def get_save_interval(self): 
+        return self._save_interval
 
-    def set_save_intervall(self, value: int): 
+    def set_save_interval(self, value: int): 
         if value >= 0 and value < 3600000:
-            self._save_interfall = value
+            self._save_interval = value
 
-    def set_default_save_intervall(self):
-        self.set_save_intervall(5000)
+    def set_default_save_interval(self):
+        self.set_save_interval(5000)
 
     def get_exit_hotkey(self): 
         return self._exit_hotkey
