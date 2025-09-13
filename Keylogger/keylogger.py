@@ -241,7 +241,7 @@ def key_callback(event: KeyboardEvent):
         return
     # Ctrl + Alt 
     elif 29 in pressed_keys and 56 in pressed_keys:
-        name = event.name
+        name = ''
         if event.name == '7':
             name = '{'
         elif event.name == '8':
@@ -261,13 +261,14 @@ def key_callback(event: KeyboardEvent):
         elif event.name == 'q':
             name = '@'
 
-        key_pressed = {
-            "name": [name],
-            "scancode": [event.scan_code],
-            "pressed": [pressed_keys.copy()],
-            "value": [" "],
-            "length": 1
-        }
+        if not name == '':
+            key_pressed = {
+                "name": [name],
+                "scancode": [event.scan_code],
+                "pressed": [pressed_keys.copy()],
+                "value": [" "],
+                "length": 1
+            }
     # Space
     elif event.name == 'space':
         key_pressed = {
