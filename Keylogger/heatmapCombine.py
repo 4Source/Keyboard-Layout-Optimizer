@@ -53,6 +53,7 @@ def combine_json():
                             combine(temp_buffer)
                     except json.JSONDecodeError as error:
                         print("JSON decode error in file " + file + ", trying to fix...")
+                        errorCount = errorCount + 1
                         with open(filePath, "r") as read_file:
                             broken_data = read_file.read()
 
@@ -70,7 +71,7 @@ def combine_json():
             print(repr(error) + ' in File: ' + file)
             errorCount = errorCount + 1
     print("Processed files (" + str(totalCount - skippedCount - errorCount - removedCount) + "/" + str(totalCount) + ")")
-    print("Fixed files (" + str(fixedCount) + "/" + str(totalCount) + ")")
+    print("Fixed files (" + str(fixedCount) + "/" + str(errorCount) + ")")
     print("Canceled files (" + str(errorCount) + "/" + str(totalCount) + ")")
     print("Removed files (" + str(removedCount) + "/" + str(totalCount) + ")")
 
